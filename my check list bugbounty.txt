@@ -1,0 +1,836 @@
+https://github.com/Az0x7/vulnerability-Checklist/blob/main/Cookie%20%20Attack/cookie.md
+https://github.com/HackShiv/OneDorkForAll/blob/main/dorks/60%20bug%20bounty%20dorks.txt
+https://github.com/KathanP19/HowToHunt/blob/master/IDOR/IDOR.md
+https://github.com/ianare/exif-samples/blob/master/jpg/Konica_Minolta_DiMAGE_Z3.jpg
+methodology https://readmedium.com/what-after-recon-part-01-bug-bounty-methodology-25ff3705a738
+
+Broken Access Control
+Cryptographic Failures
+Injection
+Insecure Design
+Security Misconfiguration
+Vulnerable and Outdated Components
+Identification and Authentication Failures
+Software and Data Integrity Failures
+Security Logging and Monitoring Failures
+Server-Side Request Forgery (SSRF)
+
+
+special charector letter(make change the speling with this cherector looking different but word is same ato )
+
+recon part
+----------->
+
+1. Chack the Target full manualy
+2. finde all subdomains (if posible)
+3. Fuzzing on Subdomains
+4. Check robots.txt 
+5. shodan search try every method
+6. fofa
+7. pentester.com ( X )
+8. google dorking try every method (filetype:)
+9. wayback 
+10. Gitdorking try every method
+11. .js file checking
+12. osint
+13. grayhatwarfare.com (finding buckets)
+14. https://phonebook.cz/#<find urls like wayback>
+
+------------------------------------------------------------------------------------------------------------
+BrokenLinkHijacking
+---------------------->>
+
+1. Manually find and click external links on the target site ( For Example:- Some Links to Social Media Accounts or Some external Media Link)
+2. While Doing Manual work also put broken-link-checker in background using below Command interminal.
+       ------> blc -rof --filter-level 3 https://example.com/
+Ouput will be like Something.
+
+
+=>> this are the website is able to find BrokenLinkHijacking
+
+-> Input the domain name
+https://brokenlinkcheck.com/
+https://www.deadlinkchecker.com/
+https://ahrefs.com/
+
+
+
+=====================================================================================================
+Signup page Vulnerabilities
+--------------------------------->>
+1. No rate limit on Signup
+2. Attempt to bypass email verification.
+3. use same email or usermane in deferent a/c
+4. Long password DOS on reset password
+5. Server-side credentials stored in plaintext. {<when web is use http on signup bcz captcher in wireshark>}
+7. SSTI
+8. Open redirect 
+9. SSRF to fatch internal IP Address
+10. lack of email confirmation
+11. The DMARC record is not properly configured
+12. Lack of input validation and aslo try to Bypass it intercept and change in burp
+13. CSRF
+14. XSS/ BXSS
+15. HTML injection
+16. Insecure Direct Object References (IDOR)
+17. Buffer overflow
+18. SQL Injection
+19. Weak Password Policy / No Password Policy
+20. HTTP Parameter Pollution
+21. Default Credentials
+22. Email Address Enumeration
+23. Captcha Bypass
+24. Brute Force Protection
+25. overwrite account associated with email via android application
+
+Payload for Username field : <svg/onload=confirm(1)>
+Payload for Email field : “><svg/onload=confirm(1)>”@x.y
+
+=>> https://medium.com/@Az3m/register-vulnerability-checklist-20327eb250be
+
+--------------------------------------------------------------------------------------------------------------------------
+RESET PASSWORD TESTING
+-------------------------->
+
+=>> Session doesn't expire after 2FA, and also, other sessions can change the password.
+=>> Session fixation issue: --------------------------------------------------------------> https://hackerone.com/reports/678050
+=>> Reset password link sent over unsecured HTTP protocol: ----------------------> https://hackerone.com/reports/1888915
+=>> Copy login cookies, logout, and paste them.
+=>> Broken authentication and session management: (login in a/c copy the cookies and paste into another browser and login with that, then logout from the first a/c, now you can see you're still logged in the 2nd browser)
+=>> Session hijacking improper sanitization.
+=>> Server-side credentials stored in plaintext. {<when web is using HTTP on signup because capture in Wireshark>}
+=>> Use the same email or username in different a/c.
+=>> Reset password token via third-party. (search code in Burp Suite search option after using the token)
+=>> Reset link does not expire; use the same token multiple times.
+=>> Reset token leak in response.
+=>> Password reset token leak via referrer.
+=>> Host header injection on reset password.
+=>> Long password DOS on reset password. (try on signup & forgot password/update password/change password) (500+ characters)
+=>> Set a one-digit password for weak password implementation.
+=>> Check for rate limiting on password reset requests.
+=>> Ensure CAPTCHA implementation to prevent automated requests.
+=>> Verify if the application discloses whether an email exists in the system (email enumeration).
+=>> Protection against brute force attacks on reset token.
+=>> Test the randomness and length of the reset token.
+=>> Verify reset token expiry.
+=>> Post-reset, ensure the user is forced to re-login.
+=>> Account lockout after a certain number of failed reset attempts.
+=>> Security notifications for password reset requests.
+=>> Logging and monitoring for suspicious activities.
+=>> Full testing on forgot password functionality. By using PDF.
+
+
+
+------------------------------------------------------------------------------------------------------
+Business Logic Vulnerability
+------------------------------>
+https://medium.com/@Az3m/business-logic-checklist-eafde7f86dc2
+
+
+
+
+
+
+--------------------------------------------------------------------------------------------------------
+Exploitation of Denegerious HTTP Method
+------------------------------------------->
+If you want to know which method are enable try to use 'OPTION'
+
+OPTION :> use this request avialable method on the server   
+PUT :> It means BY using this method you can store enclose entity on the server
+GET :> is retrive the informaion which is requested
+HEAD :> retrive only header information
+POST :> send a request with entity enclosed in data 
+DELETE :> remove the resource from the server
+TRACE :> diagnose the communication
+CONNECT :> create a tunnel with proxy
+
+Also test put url on /directory/ place if applicaton behave as proxy so it will return response frome the this url resver and also try change http method put/option/connect like this also when you using connect method than hackersera.com:80
+
+GET <url> http/1.1
+
+
+TOOL
+----->
+RESETclint addon 
+
+
+----------------------------------------------------------------------------------------------------------------------------
+RACE CONDITIONS
+---------------->
+
+There are some basic RC tests that you can try in the context of Logic Flaws.
+- Invite user
+- Joining a group
+- when transfering money one a/c to other account.
+- Like, subscribe, follow, unfollow, Vote ..etc that required limit.
+
+
+
+=>> Multi-Endpoint Race Conditions
+
+1 - When a single functionality chains with multiple request , eg - Buying a product from a E-Commerce application
+
+- /product --> for the product
+- /cart    --> Add to cart that product
+- /cart/checkout  --> Buy that product
+
+<<<<<<<<<<<<<<<<< HOW TO DO >>>>>>>>>>>>>>>>>>
+2  - Send all the required request into burp repeater for the product you want in a sequence and create a Tab.
+2.1 - Select Send Parallel (single Packet Attack) and hit send.
+
+3. user BurpSuite Turbo Intruder
+4. try send null byte attack
+5. brute force or no rate limit increase 'count=100'
+
+
+------------------------------------------------------------------------------------------------------------------------------
+Session Management
+------------------->
+1. Guessing Session ID : (Using the tool Hash-Identifier, try to manipulate the cookie.)
+
+=>> Sensitive Info: Check if the cookie stores sensitive information like session IDs, user data, or even plaintext passwords.
+    Via localStorage/sessionStorage
+
+=>> How to Check the Temp Folder:
+
+Session Management Issues > Insecure Session Handling > P4 - Session Invalidated, Token Still Usable
+2. Log into the website.
+3. Capture any request, such as profile edit, using Burp Proxy.
+4. Logout from the website.
+5. Replay the captured request from step 2 and notice if it displays the proper response.
+
+Email Change and Password Reset Vulnerability
+1. Log in to the website.
+2. Change your email ID.
+3. Use the old email to reset the password.
+4. If you are able to reset the password using the old email, then there is a vulnerability.
+
+Insufficient account process validation leads to account takeover (P3/P4):
+1) Create an account on the website.
+2) Go to profile section. And Change & update your details in the name parameter and before saving it Open Burp suite, turn the proxy on and then click on Save.
+3) Now capture the request in Burp suite and send it to the Repeater tab.
+4) Now log out from the website and go back to the Burp suite.
+5) Now change the details email & name parameters and click on "Go" in the repeater tab.
+6) Now you will be able to see 200 ok response from the web server.
+7) Now, login into your account and go to the Profile section to confirm
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+Incomplete or No Cache-control and Pragma HTTP Header Set
+------------------------------------------------------------->
+Server security misconfiguration -> Lack of security headers -> Cache control for a security page
+    1. Login to the application
+    2. Navigate around the pages
+    3. Logout
+    4. Press (Alt+left-arrow) buttons
+    5. If you are logged in or can view the pages navigated by the user. Then you found a bug.
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------
+lack of password confirmation --->bypass X-Forwarded-For:127.0.0.1 
+------------------------------------------------------------->
+
+-> change email address
+-> change password
+-> Delete account
+-> manage 2FA
+-> A after changing thez password it is best to alwas verify with sending mail your has been changed
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+Session fixation issue:
+------------------------->
+
+try to login in your account but right email and wrong passsword than intercept this repuest in burpsuite copy the cookie over here than change you browser or shift to privet browser here now try to log in with you real credential but also intercet the request and chenge your cookie with old one than forword this if your login so that your cookie is also ready to user now you can use any where
+
+
+
+
+
+=================================================================================================================
+Unuath cache purging
+-------------------------->
+check if cache: HIT in response for for it 
+
+curl -S -D - https://app.withpersona.com/
+curl -X PURGE https://withpersona.com/
+
+## Web cache deception
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------
+Lack of input validation
+----------------------------->
+
+=>> improper input validation (enter name and other intercept the request in burpsuite send to repeater and increase the numer of input)
+=>> no text length verifing in any input field just try to incease the length on contant 
+
+Some Normal Technique To Bypass Include :
+
+1. Encoding and Decoding: Using different encoding techniques (URL encoding, Base64 encoding) to bypass filters that are designed to block special characters.
+2. Whitespace Injection: Inserting spaces, tabs, or newlines to bypass validation checks that don’t account for whitespace.
+3. Null Byte Injection: Using null bytes (%00) to terminate strings early and bypass validation checks.
+4. Character Encoding Manipulation: Employing different character encodings or Unicode characters that may not be properly validated or filtered.
+5. HTML Entity Encoding: Using HTML entities (&lt;, &gt;, &amp;) to bypass filters that block specific characters.
+6. Unicode Encoding: Using Unicode representations of characters to bypass filters that are not Unicode-aware.
+7. Double Encoding: Encoding characters twice to bypass filters that only decode once.
+8. Using Escape Sequences: Employing escape sequences like \x or \u to bypass input validation.
+
+
+---------------------------------------------------------------------------------------------------------------------------------------
+No Rate Limit
+-------------->
+-> try find on subdomains
+->Registration page
+->Login page
+->sms triggering
+->forgot email send
+->comments
+->contact form
+->OTP varification
+->To chacking correct token
+-> on uploading reature to upload file 4MB send thus multiple time on the server 
+
+Rate Limit Bypass
+=>using null Byte
+  ->emai@gmail.com%00
+  ->emai@gmail.com%0d%0a
+  ->emai@gmail.com%09
+
+=> Through Race condition
+=> IP rotation
+=> Host Header Injection
+    -X-Forwarded-For:1.1.1.1
+    -X-Forwarded-For:2.2.2.2
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+=>> host header injection
+--------------------------->
+first you neet test on 2xx, 3xx 
+
+First method to find host header injection 
+
+change real host to bing.com 
+
+second method to find host header attack injection 
+
+change host from realweb.com to bing.com 
+set X-Forwarded-Host to realweb.com 
+
+3rd method to find host header attack 
+set X-Forwarded-Host to bing.com 
+and Host to realweb.com 
+
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------
+OPEN REDIRECT
+----------------->
+using dork and grap all url from linkfinder and check it now
+=> ?redirect=https://evil.com
+=> login
+=> logout
+=> register
+=> To check any whare redirecting your websites to third party like facebook, twiitter
+=> use payloads {target.com/$payloads$}
+=> reset password / coformation email  link redirection=evil.com 
+=> always try to find open redirect on auth 2.0 with(facebook,google,apple) <https://www.example.com/login.html?RelayState=http%3A%2F%2Fexample.com%2Fnext>
+email open redirect input redirect (check it)
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------->
+CSRF
+------>
+=>> logout
+=>> email chenging 
+=>> password chenging 
+=>> any input feald chenging like name,address,comments, feadback,
+=>> try to paypasses of this CSRF
+=>> any think if your changing there and also delete try make csrf payload for this attack
+=>> for the bypass samesite csrf protection try to change there method POST to GET (bcz here it is passing cookie and verifi with this also ther are also several method search it)
+
+ 
+=>> https://medium.com/@xploiterd/how-to-perform-and-exploit-cross-site-request-forgery-csrf-attacks-1764c0f23585
+
+1. CSRF to change password which lead to account takeover
+a)Firstly attacker logs in in his account and changes his own password
+b)He captures his own change password request through BurpSuite and sees that no CSRF token neither and measures are present to prevent any CSRF attack.
+c) Using Engagement tools he generates CSRF POC and send the code to victim. Now once any authenticated user clicks on the link his password changes without his knowing.
+
+
+
+2. Login CSRF to get victims location
+
+3. CSRF and IDOR leading to accout takeover
+
+=>> CSRF Bypass
+------------------>>
+Only protected by checking the origin header:
+1. The request body is json data
+2. Trying with Content-type:text/plain
+3. Respone: Cors origin not allowed
+4. Trying with Content-type:application/ x-www-form-urlencoded
+5. Boom..respone: success
+6. Valid as Severity High
+
+=>>Delete the token param or send a blank token
+=>>Change the request method
+
+10008779682
+python xsstrike.py -u "http://example.com/page.php" --crawl
+
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Information declosure
+---------------------->
+
+when you enter forgot password input field email than check the response in burpsuite
+robots.txt
+github
+check response on forgot password if leaking some usefull data 
+in google dorking 
+try to view source code of the the page any type of comment there which show any internal information
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+auth mesconfigure / auth bypass
+------------------>
+
+=>> login bypass with response manipulation with correct one 
+=>> create account email-id & password / try login with google using same email-Id now you login in your same a/c
+
+
+
+
+
+
+---------------------------------------------------------------------------------------------------------
+identity management testing
+----------------------------->
+if application is not verify the given detail by user 
+
+
+-------------------------------------------------------------------------------------------------
+Big Note:Sensitive Data Exposure P4
+------------------------------------->
+
+let's say u deleted your account but account data still on the application then there is a vulnerability
+
+step to reproduce:
+1. sign-up
+2. profile picture
+3. uload ur image
+4. cony the profile image location
+5. delete your account
+6. after account deletion just open the link again 
+7. if your able to see it now so that's a vulnerability
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+EXIF Geolocation Data Not Stripped From Uploaded Images
+------------------------------------------------------------>
+
+upload this image on your target website or application 
+copy the path/url and past it for checking they have GPS present or not
+
+
+image 
+|_> https://github.com/ianare/exif-samples/tree/master/jpg/gps
+|_> https://github.com/ianare/exif-samples/blob/master/jpg/Konica_Minolta_DiMAGE_Z3.jpg
+
+tool for checking mata data
+|-> https://openminds.exopaedia.org/EXIF%20samples/exif%2069667671.egLsAwK4.Staroselciweb64_6625.htm
+|-> https://exifmeta.com/
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+The DMARC record is not properly configured
+--------------------------------------------->
+
+1. signup any website they sent verification email link also here prosent so copy this email
+2. Go to mxtoolbox or many way to test DMARC record present or not 
+3. if here is it not present record 
+4. find any fake mailer and sent using there email for FROM address if it success so this vulerability 
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+blind xss 
+---------->
+
+where we can find it 
+- contact form log viewer 
+- feedback page
+- chat app
+- ticket generation app
+- Review form
+- password field (you never know if the other site doen't properly handle input and if your password is in view mode)
+- address field of e-commerce sites
+- first name and last name while doing credit card payment
+- set User-Agent to a Blind XSS payload. You can do that easily from a proxy such as Burpsuite.
+
+any aaplication require user modaration
+
+try your all xssreport payload its may be any payload was worked
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+IDOR
+------>>
+
+where you can find this vulnerability
+
+1. idor on password rest option
+   -> create your 2 or more a/c 
+   -> go to change password option
+   -> click to change password and intercept this request in burbsuite 
+   -> try to change with the victim  
+                                   => user id, username, email, and any other key type
+
+2. idor on Delete a/c option => also try to change PAGE ID, PAGE NAME 
+3. idor on comment option
+4. idor on update profile option 
+5. idor on view profile option ()
+5. idor on refresh profile page  
+6. any other userid pass in request body or parameter
+
+#1 https://twitter.com/M0_SADAT/status/1361289751597359105
+Looking for high impact IDOR?
+Always try to find the hidden parameters for this endpoints using Arjun and Parameth
+/settings/profile
+/user/profile
+/user/settings
+/account/settings
+/username
+/profile
+And any payment endpoint
+
+==>> Pro tip: 
+Don’t forget to try create/update/delete operations on objects that are publicly readable but shouldn’t be writable. Can you PUT to /api/products and change a price?
+
+
+
+https://github.com/KathanP19/HowToHunt/blob/master/IDOR/IDOR-Old.md
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+Account lockout
+----------------->>
+
+try to user real username and wrong password to login it may be 1000 time if the account is locked for 24 hourse or above so its vulnerability
+
+
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+Other Vulnerabilities
+-------------------->
+=>> Broken Link hijecking
+=>> SPF Record
+=>> xspa
+=>> Back Button Enable
+=>> cryptography weak fuiliar
+=>> CORS
+=>> No Nonce on captcha
+=>> ifram injection
+=>> API keyleak
+=>> Self xss to open redirect by csrf  abc.html
+=>> 403 Bypass
+=>> PII
+=>> CSTI/SSTI
+=>> SSRF
+=>> Parameter polution 
+=>> proto type polution
+=>> IIS server exploitaton
+=>> XML Data / XXE injection
+=>> RCE
+=>> API key
+=>> jwt vulnerability
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+2FA/MFA BYPASS
+===============>
+
+1). otp pass in response
+2). Edit the respone/edit json token
+3). by brute force to identify right otp
+4). sensitive information within js files and github/ github tool for this vulnerability= JSFScan.sh
+5). auth bypass via Host-Header injection 
+6). otp pass in INSPACT
+7). null
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+SSRF
+-------->
+1. SSRF via Uloading Image.(png to svg)
+2. SSRF Via uloading video
+3. By Openresirect Vulnerability
+4. By JavaScript
+
+
+1. go to the website to sending image or any other think before you send this intercept this request in burpsuit and look into this and find any type of url where it's faching data from any external source than here past you burpcollaborater link tha  send 
+
+
+vulnerable url /contact-us/
+1  go to https://target.cpm/contact-us/
+2. enter burp collabrateor cilnt payload
+3. click on send 
+4. when go to burp collabrator client and you got http and dns intercation are there
+
+ssrf via xmlrpc 
+
+try to put url of burp collabrator in every enter url field 
+
+ssrf via open redirect
+
+Backend machine scan
+PORT scan
+File over port scan
+Whitelist SSRF Bypass
+6/25
+Machine scan over port
+AWS ec2 
+SSRF xss
+File Upload SSRF
+SSRF to Dos
+1. Detection : Burp Collaborator
+2. EXPlOIT : Not every HTTP is ssrf | Please check that IP info | CHAT BOTS / BOX not buggy for ssrf
+3. Escaltion
+GET :
+https://site.com/index.php?uri=http://burpcollaborator.net : HTTP
+https://site.com/index.php?uri=http://127.0.0.1:8080/
+Regsiter forms : names . address,
+Waybackurls : uri , url , red, redirect
+Add data , ADD links , Verify URL, Add website
+
+SSRF through internal file reade
+SSRF to RFI
+SSRF to RFI to XSS
+SSRF to read cloud meta-deta 
+SSRF through the video file upload FFMPEG
+
+https://github.com/neex/ffmpeg-avi-m3u-xbin
+./gen_xbin_avi.py file://<filename> file_read.avi
+
+SSRF in HTML to PDF conversion(save this file .html format "><svg/onload=document.write(document.location)>
+"><iframe src="file:///ect/passwd">
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+Price temparing
+---------------->
+
+
+price should be = 700  qty=5
+change in request
+0
+-700
+500+200
+10*70
+try to maiupulate the response 
+
+qty
+-5
+
+try to change token id low with heigh
+also try curency type like $ to rupee
+
+
+---------------------------------------------------------------------------------------------------------------------------------------
+TIME base SQL injection methodology 
+
+Where I look for time based SQLi ?
+Login pages
+Headers
+GET parameters | Sometimes
+Mostly I focus on Login pages and try to check if ORG is using jsp,php or aspx in any domain or not.
+
+=>get all urls and remove duplicates use gf sql to identify best urls 
+
+
+=>>Take all the login pages and open it in firefox .
+
+1. Enter anything in username and password
+2. Send request to intruder
+3. Use following payloads (I use this mostly)
+4. Add username and password as attack position
+5. Select attack type as pitchfork and paste payloads
+6. Start attack
+
+
+findomain -t testphp.vulnweb.com -q | httpx -silent | anew | waybackurls |  gf sqli >>> sqli; sqlmap -m sqli-batch --random-agent --level 1
+
+----------------------------------------------------------------------------------------------------------------------------------------
+unsafe file upload
+------------------->
+
+
+-> no antiviuse
+-> no size limit
+-> file extension filter bypass(any.png.svg)
+-> EXIF Geolocation Data Not Stripped from stored Images uploaded on appsheet ( 2. Go to http://exif.regex.info/exif.cgi)
+
+- Time-Based SQLi Payloads: e.g. `poc.js'(select*from(select(sleep(20)))a)+'.extension`
+- LFI Payloads:  e.g. `image.png../../../../../../../etc/passwd` 
+- XSS Payloads e.g. `'"><img src=x onerror=alert(document.domain)>.extension`
+- File Traversal e.g. `../../../tmp/lol.png`
+- Command Injection e.g. `; sleep 10;`
+
+
+
+
+
+
+
+
+=================================================================================================================
+CVE 2024-4367
+--------------->
+ pdf file uploading use your payload C:\Users\Akshay\OneDrive\Desktop\payload list\pdFExploits
+upload and view
+
+also test via fileupload pdf
+
+
+
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+Clickjacking 
+------------->
+
+->input field
+->non input field
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+=>> Insecure Data Transport	Executable Download	No Secure Integrity Check
+
+-->Initiate the download of an executable file from the software distribution platform without performing any integrity check on the downloaded file.
+
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+XSPA <XLMRPC>
+------------------>
+
+<methodCall>
+<methodName>pingback.ping</methodName>
+<params>
+<param><value><string>http://hackersera.c om:66666</string></value></param>
+<param><value><string>http://http://192.1 68.0.106/wordpress/?p=4</string></value><
+/param>
+</params>
+</methodCall>
+
+------------------------------------------------------------------------
+DOS
+----->
+
+password dos attack fil the register form intercept the request in burpsuite send to the repeater increase password langth
+image uploading functionality upload image intercept in burp send to the repeater add larg sting on .jgp(here)   -----------> https://hackerone.com/reports/764434
+
+
+insecure deserialization
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------
+Subdomain Takeover
+-------------------->
+
+first is us automation github tool
+use subzy tool for finding takover 
+subzy run --targets subdomains.txt --concurrency 100 --hide_fails --verify_ssl
+
+
+find status code 404 subdomain check there cname and also check on "can i takover xyz" on github
+host target.com
+
+1. find all the subdomains by using tools
+
+=> subbruteforcer
+   * ruby sub_brute.rb --fast
+
+
+
+
+
+
+-------------------------------------------------------------------------------------------------------
+bufferoverflow
+----------------->
+
+1. stack overflow
+2. heap overflow
+3. integetr overflow
+4. formate string overflow
+
+
+find this on search feald to send long to long string on there if it is overflow any think spciel so thal bug
+
+
+----------------------------------------------------------------------------------------------------------
+SSTI
+------>>
+{7*7},7*7,{{7*7}}
+{{7*7}}
+=>> find on signup page
+=>> Invitation on email
+
+
+19
+
+----------------------------------------------------------------------------------------------------------
+VIR call request crash Vulnerability
+-------------------------------------->
+
+->option to verify using call
+Verification procedure must accept or suppose to have rules to validate users input(Mobile Nuber)
+->characters
+->special charcters symbols
+
+step to reproduce:
+1. capture IVR verification  call 
+2. mobile- try to use illegale charectors
+3. after such attemt request
+just try normal way to verify by giving real mobile number
+and if application is working fine than there is no vulerability
+
+=============================================================================================================
+Ticket trick
+-------------->
+
+if any comapany ha
+ving there help-desk section, if issuing ticket by sending mail than you should try to find on that try send on this issue mail if you are receiving on you own email so that's vulnerability
