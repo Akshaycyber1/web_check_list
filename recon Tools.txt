@@ -1,0 +1,159 @@
+recon Tools
+
+1. https://app.pentester.com/
+2. https://dork.bugbountyhunting.com/
+3. https://pentest-tools.com/information-gathering/google-hacking
+4. BigBountyRecon 
+## github dorking
+5. Reconftw
+6. spiderfoot
+7.https://web.archive.org/cdx/search/cdx?url=*.brex.com/*&output=text&fl=original&collapse=urlkey waybackurls -->
+8. https://sawravchy.github.io/archivefinder/
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+>> Finding Origin IP
+
+1. Basic Network Tools  
+   - ping target.com  
+   - dig target.com  
+   - nslookup target.com  
+
+2. DNS Reconnaissance  
+   - dnsrecon -d target.com  
+   - dnslookup  
+
+3. Service and SSL Analysis  
+   - whatweb  
+   - nmap --script ssl-cert -p 443 <IP>  
+   - shodan search ssl.cert.subject.CN:"domain" 200 --fields ip_str | httpx -sc -title -server -td  
+
+4. Web Application Firewall Detection  
+   - wafw00f url  
+
+5. Advanced Reconnaissance Tools and Services  
+   - Shodan: ssl.cert.subject.CN:"domain" 200  
+   - Censys.io  
+   - Fofa.so  
+   - SecurityTrails (check historical data)  
+
+6. Favicon Hash Identification  
+   - Extract and analyze the favicon hash (use tools like hashcat or fav-up).  
+
+7. Reverse IP Lookup  
+   - https://viewdns.info/reverseip/ (domain/IP)  
+   - Netcraft: https://netcraft.com  
+
+8. Security Headers Check  
+   - https://securityheaders.com  
+
+9. Other Reconnaissance Platforms  
+   - ZoomEye: https://www.zoomeye.org  
+   - VirusTotal: https://virustotal.com  
+
+10. WHOIS Information  
+    - whois target.com  
+    - Online tools like https://who.is
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
+
+
+---------> reconesence###
+
+pentester.com
+
+shodan.io -->  ssl.cert.subject.cn:audiobooks.com
+               ssl:audiobooks.com
+                 Dork : http.title:"audiobooks"
+click on (open more) than you will found new page where mention more thinh
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+API KEY 
+
+https://github.com/streaak/keyhacks
+
+
+
+
+
+
+
+
+
+
+TIME base SQL injection methodology 
+
+Where I look for time based SQLi ?
+Login pages
+Headers
+GET parameters | Sometimes
+Mostly I focus on Login pages and try to check if ORG is using jsp,php or aspx in any domain or not.
+
+
+
+
+
+*
+
+For COmmand Inection Possible Paeameters
+
+daemon=
+host=
+upload=
+dir=
+excute=
+download=
+log=
+ip=
+cli=
+cmd=
+
+
+========================================================================================================
+
+git dorking
+
+https://obheda12.medium.com/gitdorker-a-new-tool-for-manual-github-dorking-and-easy-bug-bounty-wins-92a0a0a6b8d5
+
+https://sudoninja.gitbook.io/sudoninjabook/security-area/bug-bounty-hunting/bug-bounty-platform
+
+
+
+
+
+
+++++++++++++++++++++++++++=
+nuclei
+reconftr
+httpx
+nuclifuzzer
+subfinder
+waybackurls
+katatna
+gau tool
+dalfox
+paramspider
+recomftw
+toxicache -i subdomain.txt
+ paramspider -d example.com -p '"><h1>reflection</h1>'
+https://github.com/shmilylty/OneForAll
+bugsnag
+
+
+Devils World
+5:55 PM
+https://github.com/danielmiessler/SecLists/blob/master/Discovery/DNS/bitquark-subdomains-top100000.txt
+ye wordlist use krna
+abhi nhi
+ye wordlist hai bss
+#!/usr/bin/bash
+echo "Enumerating Subdomains of $1 : STARTED"
+echo "Running : Subfinder"
+subfinder -silent -dL $1 | anew subdomains >/dev/null
+echo "Number of subdomains : $(wc -l < subdomains)"
+echo "Resolving..."
+cat subdomains | dnsx -stats -v |anew live-subdomains >/dev/null
+echo "Number of resolved subdomains : $(wc -l < live-subdomains)"
+echo "Bruteforcing..."
+cat $1 | xargs -I@ dnsx -d @ -w ~/bitquark-subdomains-top100000.txt -v -stats -t 250 | anew live-subdomains| anew subdomains  >/dev
