@@ -1,0 +1,190 @@
+
+________________________________________
+Quick map (common paths to check)
+These are common endpoints — adapt to the app’s actual routes:
+•	Login / auth:
+o	/user/login, /login, /auth/login.php, /admin/login.php
+•	Password reset / recovery:
+o	/user/password, /reset.php, /forgot-password.php, /password_reset.php
+•	Captcha endpoints:
+o	/captcha.php, /captcha/generate, /captcha/verify, g-recaptcha token param g-recaptcha-response
+•	Enquiry / contact forms:
+o	/enquire, /contact, /contact/submit, /submit_enquiry.php
+•	Admin / config:
+o	/admin, /admin/*, /admin/modules.php, /admin/config.php
+•	Session / logout:
+o	/logout, /session.php, /auth/logout.php
+•	File upload:
+o	/upload.php, /admin/upload.php, /files/upload
+•	Misc:
+o	/robots.txt, /CHANGELOG.txt, /README, /install.php
+If the app uses pretty URLs, map them to actual PHP files with directory listing or by observing requests.
+________________________________________
+Test plan & how-to (step-by-step)
+1) Recon & enumeration (non-intrusive)
+Purpose: discover exposed endpoints & technologies.
+How:
+•	Passive: browse the app, open all pages, save responses in Burp. Note cookies, hidden fields.
+•	Tools:
+o	nmap -sV -p- target (service discovery)
+o	curl -I https://target/ (headers)
+o	whatweb https://target/ or Wappalyzer for tech stack
+o	gobuster dir -u https://target -w /path/wordlist -x php,txt,html -t 20 (directory discovery)
+What to record: paths discovered, server headers, cookies names (e.g., PHPSESSID), framework hints.
+________________________________________
+2) Login form tests (unauthenticated)
+Purpose: account enumeration, CSRF, headers, client-side only captcha.
+Paths: /login, /user/login.php
+How:
+•	Intercept login POST in Burp Proxy.
+•	Check request for: username, password, hidden csrf_token, captcha, cookies.
+•	Tests (use Repeater):
+1.	Username enumeration: send same password for different usernames; look for different response times/messages. Example body: username=admin&password=BadPass
+	Evidence: different status codes, body messages like "user not found" vs "incorrect password".
+2.	CSRF presence: Remove or change csrf_token and replay.
+	If request still succeeds → no CSRF.
+3.	Referer/Origin validation: Remove Referer header and replay; change Origin header.
+4.	Login field validation: inject admin' OR '1'='1 into username to check basic SQLi (careful).
+	If you get unusual responses (SQL errors) run sqlmap --data="username=admin' --password=xyz" --url="https://target/login" ... only if authorized.
+5.	Captcha behavior: submit with wrong captcha and then with the real one. Observe server response codes/messages.
+Expected signals:
+•	Enumeration: differing messages or timings.
+•	CSRF missing: token absent or not validated.
+•	SQLi vulnerability: SQL errors or unexpected login success.
+Mitigation summary: standardize responses, add CSRF server-side validation, parameterized queries.
+________________________________________
+3) CAPTCHA testing
+Purpose: see if CAPTCHA can be bypassed or replayed.
+Paths: page that serves captcha image (e.g., /captcha.php) and the form submit endpoint.
+How:
+•	Intercept form submission while solving captcha once.
+•	Send captured request to Repeater and:
+1.	Replay with same full request (same cookie & captcha answer).
+2.	Replay after removing cookies.
+3.	Replay after changing the captcha field to random string.
+4.	Replay after waiting (test expiry).
+5.	Inspect whether there is a secondary hidden token like captcha_token or captcha_id.
+•	Look for g-recaptcha-response parameter for Google reCAPTCHA flows — check server verifies that token with Google.
+•	Check for server-side call to verify (may not be visible directly; infer from behavior).
+Signs and interpretation:
+•	Replay accepted with same or different session → captcha not validated server-side or tokens not single-use.
+•	Only accepted when same session present → token tied to session (better).
+•	Rejected with "invalid captcha" → working server-side validate.
+Mitigation: server-side verification, single-use tokens, tie tokens to session, short TTL.
+________________________________________
+4) Brute-force / password spraying (only if allowed and throttled)
+Purpose: test rate-limiting and lockouts.
+How:
+•	Use Burp Intruder with very low rate (1 req/sec or slower) or patator/hydra with throttling.
+•	Test single-user rapid attempts vs many-user slow spray. Example policy:
+o	10 attempts per account, spacing 30s between attempts.
+•	Check for account lockout, 429 responses, or CAPTCHA challenge after few failures.
+What to log: timestamp of lockouts, exact response messages. If lockouts occur, identify thresholds.
+Mitigation: progressive delay, account lockout, CAPTCHA after failed attempts, MFA.
+________________________________________
+5) Session management & cookie tests (post-auth)
+Purpose: session fixation, cookie flags, session expiry.
+How:
+•	Login, capture Set-Cookie headers.
+•	In Repeater:
+1.	Try session fixation: set session cookie (PHPSESSID) before login and see whether session id persists after login.
+2.	After login, copy session cookie to a different browser and access admin-only pages.
+3.	Remove HttpOnly/Secure flags check: inspect cookie attributes. If Secure missing on HTTPS, note it.
+4.	Try logout then use old session cookie — is session invalidated?
+5.	Check session timeout: wait idle and then re-request.
+Mitigation: regenerate session id on login, set HttpOnly, Secure, SameSite, proper timeouts, invalidate session on logout.
+________________________________________
+6) Password reset / account recovery
+Purpose: email enumeration, insecure reset tokens.
+Paths: /forgot-password.php, /password_reset.php
+How:
+•	Attempt password reset for known and unknown emails/usernames — observe response messages.
+•	Intercept reset link token in email (if you can access test mailbox) — check token complexity and expiry by replaying it multiple times.
+•	Try modifying token (bitflip) and using it.
+Mitigation: generic messages ("If the email exists we'll send instructions"), single-use expiring tokens, strong randomness.
+________________________________________
+7) CSRF checks on admin actions (requires creds)
+Purpose: verify admin operations require CSRF tokens.
+Paths: /admin/* endpoints that perform state changes (enable/disable module, delete user).
+How:
+•	Capture an admin action POST (e.g., toggle module). Remove CSRF token and replay.
+•	Test doing the POST from a different Origin header. If action succeeds → missing CSRF verification.
+Mitigation: enforce server-side CSRF validation for all state-changing endpoints.
+________________________________________
+8) Input validation & injection tests (XSS, SQLi, LFI/RFI)
+Purpose: traditional OWASP tests; relevant on login, forms, admin pages.
+How:
+•	Submit typical XSS payloads in name/message fields: <script>alert(1)</script> and observe reflected/stored behavior.
+•	Test for SQLi on any parameters returning DB-driven content (search, login).
+•	Test file include points (if app uses include($_GET['page']) style patterns): try ?page=../../etc/passwd but safe — do read-only checks and monitor for errors.
+Tools: Burp Scanner (passive/active), sqlmap (authorized), manual payloads.
+Mitigation: parameterized queries, output encoding, input validation.
+________________________________________
+9) File upload (if present)
+Paths: /upload.php, /admin/upload.php
+How:
+•	Upload allowed file types (images) with embedded scripts or double extensions shell.php.jpg.
+•	Test content-type mismatch, tampering file headers, or uploading .htaccess.
+•	Check whether uploaded files are placed in a web-accessible folder and executed.
+Mitigation: server-side content-type checking, store uploads outside webroot, disallow execution, rename files, validate image headers.
+________________________________________
+10) Headers & TLS
+Purpose: confirm secure transport and headers.
+How:
+•	curl -I https://target/ and inspect:
+o	Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Content-Security-Policy.
+•	Check cookie flags as above.
+Mitigation: add missing headers, force HTTPS.
+________________________________________
+Burp-specific exact actions & sample modifications
+1.	Intercept the POST to /login.php or /submit_enquiry.php.
+2.	Right-click → Send to Repeater.
+3.	In Repeater:
+o	Modify body: change captcha=ABCD → captcha=XXXX and csrf_token=old → csrf_token=bla.
+o	Remove Cookie: header to test stateless acceptance.
+o	Change Referer: header to https://evil.com to test referer validation.
+4.	Observe status codes (200/302/403/429). Save all requests/responses.
+5.	For brute-force tests: Send to Intruder → Positions: username or password → payload list of passwords → set throttling to 1 req/5–10s → start.
+Sample payloads:
+•	XSS: <script>prompt(document.domain)</script>
+•	SQLi: admin' OR '1'='1
+•	Command injection (if risky endpoints): ; ls -la / ;
+(Only use injections where allowed; prefer non-destructive probes first.)
+________________________________________
+Evidence & reporting format (what to capture)
+For every finding include:
+•	Test name (e.g., Captcha replay accepted).
+•	Target URL and method.
+•	Exact intercepted request (redact PII) and server response with timestamps.
+•	Steps to reproduce (Burp Repeater steps or curl).
+•	Impact/Severity and recommended remediation.
+•	Screenshots of Burp where helpful.
+Example reproduction snippet:
+POST /submit_enquiry.php HTTP/1.1
+Host: target
+Content-Type: application/x-www-form-urlencoded
+Cookie: PHPSESSID=abcd1234
+
+name=Test&email=test@example.com&message=hi&captcha=CERLIc&csrf_token=xyz
+Then note: Replayed same request in Repeater (no cookie) → server returned 200 and enquiry created. Conclusion: captcha not validated server-side.
+________________________________________
+Prioritize tests (order)
+1.	Captcha replay/verification (high priority)
+2.	Login enumeration & rate-limiting (high)
+3.	CSRF on state-changing endpoints (high)
+4.	Session management (medium)
+5.	Password reset (medium)
+6.	XSS/SQLi on forms (medium-high)
+7.	File upload checks (high if present)
+8.	Headers/TLS (low-medium)
+________________________________________
+Final safety notes
+•	Log everything and avoid destructive payloads.
+•	Throttle brute-force tests, inform the contact if you trigger lockouts.
+•	If you find high-risk (RCE, DB dump), stop further exploitation and notify the contact immediately.
+________________________________________
+If you want, I can now:
+•	Produce a copyable Burp Repeater step-by-step for the captcha replay test (with exact header/body edit examples), or
+•	Draft the exact Rules of Engagement email to send the team specifying throttling and allowed actions.
+Which next?
+
