@@ -188,3 +188,283 @@ If you want, I can now:
 •	Draft the exact Rules of Engagement email to send the team specifying throttling and allowed actions.
 Which next?
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+High-priority Drupal + PHP test checklist (what to test first)
+1.	Outdated core & vulnerable contrib modules (HIGH) — version/patch checks.
+2.	Unrestricted file upload & upload directory execution (HIGH) — you already found upload.
+3.	Remote code execution / arbitrary file upload via module bugs (HIGH) — check contrib modules that historically had RCEs (file handlers, image processors, Views, REST, Webform).
+4.	Access to sensitive files (settings.php, services.yml, backups`) (HIGH).
+5.	Unauthenticated endpoints (update.php, cron.php, install.php, /user/register) (HIGH).
+6.	Cross-site scripting (stored/reflected) in fields, filenames, CKEditor inputs (MED-HIGH).
+7.	Privilege escalation & missing access controls on admin/* endpoints (HIGH).
+8.	CSRF on state-changing admin forms and REST endpoints (HIGH).
+9.	Insecure PHP config / info disclosure (phpinfo(), display_errors) (MED).
+10.	Session management / cookie issues (PHPSESSID, Secure/HttpOnly/SameSite) (MED).
+11.	Insecure deserialization or unsafe use of unserialize() (MED).
+12.	Directory traversal / local file inclusion (LFI) via parameters (MED).
+13.	Backup files, .git, dev files left in webroot (MED).
+14.	Image processing (ImageMagick) & EXIF parsing issues (MED).
+15.	Weak password reset and account enumeration (MED).
+________________________________________
+Drupal-specific endpoints & paths to check
+(Use these to crawl and target; adapt to site base path.)
+•	/user/login — login form
+•	/user/register or /user/register — signup/registration
+•	/user/password — password reset
+•	/admin and /admin/* — admin pages
+•	/admin/modules — module listing (may reveal contrib modules)
+•	/admin/reports/status — update status
+•	/update.php — update script (should be protected)
+•	/CHANGELOG.txt, /README.txt, /INSTALL.txt — version disclosure
+•	/sites/default/settings.php — should not be accessible
+•	/sites/default/files/* — uploaded files directory
+•	/sites/default/files/styles/* — image styles; try to access original & derivative
+•	/core/install.php, /core/CHANGELOG.txt
+•	/cron.php — cron endpoints
+•	/user/1 or /user/1/edit — account 1 (superadmin) exposure checks
+•	REST endpoints (if Services/RESTful enabled): /entity/*, /node/*, /user/*, /jsonapi/*, /rest/*
+•	Webform endpoints: /webform/*, /webform_rest/*
+•	Views pages: /views/* (check exposed filters)
+•	File download endpoints: /system/files/*, /file/download/*, /?q=system/files/... depending on routing
+•	Any custom module endpoints you find
+________________________________________
+Drupal-specific tests & how to run them (Burp actions included)
+1. Check core & contributed module versions
+•	Crawl /admin/reports/updates, /CHANGELOG.txt, meta tags, generator header.
+•	If module versions are exposed, map them to known advisories (document findings).
+•	Burp: capture admin pages showing module list; screenshot evidence.
+2. Module attack surface checks
+•	Prioritize modules that handle file uploads, image processing, remote content (e.g., Webform, REST, Views, CKEditor, FileField, IMCE).
+•	For each module endpoint: intercept requests, send to Repeater, try the following (safe probes):
+o	Omit CSRF token → does action still succeed?
+o	Remove cookies → can unauthenticated users access it?
+o	Change parameters to try to access other users’ resources (id=, nid=, fid=) to find IDORs.
+3. File upload (recheck with Drupal specifics)
+•	Upload file under /user/register or profile picture field. Capture multipart POST.
+•	After upload, GET returned file URL: confirm path (/sites/default/files/…).
+•	Test:
+o	Upload a .php text file (safe content) and try to access it. If served/executed → critical.
+o	Upload double extension (e.g., avatar.php.jpg) and attempt access.
+o	Modify Content-Type in the multipart request in Repeater and replay.
+o	Upload filename with XSS characters and view profile page to see filename rendering.
+•	Evidence: request/response in Burp, GET response of file.
+4. Check settings.php & config exposure
+•	Try direct access: /sites/default/settings.php or /sites/default/settings.php~.
+•	Check for backup files: settings.php.bak, settings.php~, settings.php.old, .sql/.sql.gz in webroot.
+•	If accessible, do not exfiltrate — note exposure and report.
+5. Update/Install scripts
+•	Try /update.php, /core/install.php. They should either be access controlled or removed in production.
+•	If accessible, it may allow site takeover if combined with file write issues.
+6. REST / JSON API endpoints
+•	If JSON API or REST modules are enabled, check for unauthenticated CRUD operations (GET/POST/PUT/DELETE).
+•	Intercept JSON requests and attempt to create or modify content in Repeater (only if allowed).
+•	Check for missing access controls on entity endpoints.
+7. Views & exposed filter injection
+•	Identify Views with exposed filters — tamper filter parameters to attempt SQL injection or XSS in results.
+•	Repeater: send crafted input for filters and watch response. Look for unescaped data or DB errors.
+8. CKEditor / WYSIWYG stored XSS
+•	Use your authenticated account to submit benign test payloads in WYSIWYG fields (e.g., <img src=x onerror=alert(1)>) but use safe placeholder like <svg/onload=alert(1)> only in testing environment.
+•	Visit as another user/anonymous to confirm stored XSS.
+9. Permission & role misconfigurations
+•	Using your creds, check role permissions under /admin/people/permissions. See if normal roles have admin-level rights.
+•	Test access control by attempting to perform privileged actions as a low-privilege account (horizontal/vertical escalation).
+10. Cron & batch endpoints
+•	Check /cron.php and any background job endpoints for abuse (large requests, forced jobs).
+________________________________________
+PHP-specific tests & misconfigurations
+1. PHP version & configuration disclosure
+•	X-Powered-By header, phpinfo() accessible pages, or error pages that reveal PHP version — record them. Old PHP versions increase risk.
+•	Check display_errors returned traces that leak source code paths.
+2. Local file inclusion (LFI) & remote file inclusion (RFI)
+•	Test parameters that look like file paths: ?page=, ?file=, ?template= with traversal payloads like ../../../../etc/passwd (non-destructive — look for error messages only).
+•	Also try php://filter/convert.base64-encode/resource=... to detect LFI reading source (be cautious).
+3. Insecure use of unserialize() / object injection
+•	Identify endpoints that accept serialized PHP data (rare in Drupal core, but custom modules may). Test with benign serialized payloads and observe behavior.
+4. Dangerous functions & eval usage
+•	Search for behaviors that allow user-supplied content to be eval()-ed or passed to exec(), system(), passthru(). Inspect responses and error messages.
+5. Backup files & source disclosure
+•	Look for .git/, .env, composer.json, composer.lock, backup SQL dumps, vendor/ exposure. These can reveal credentials or vulnerable library versions.
+6. Session & cookie management
+•	Check session.cookie_secure, session.cookie_httponly, session.use_strict_mode. Observe Set-Cookie attributes; recommend hardening.
+________________________________________
+Testing tools & Drupal helpers (local)
+•	Drush / Drupal Console (for admins): to list modules, check status (only if you have server access).
+•	Burp Suite: Proxy, Repeater, Intruder (throttled), Scanner (passive/active if allowed).
+•	Nikto / Dirb / Gobuster: find hidden files.
+•	WhatWeb / Wappalyzer: tech fingerprinting.
+•	Manual crawling: follow links, forms, REST endpoints.
+________________________________________
+Example Burp test templates (copy to Repeater / Intruder)
+(1) Upload replay test
+•	Intercept multipart POST to upload endpoint. Send to Repeater.
+•	Steps: change filename parameter to test.php (body still text), resend. Remove Cookie and resend. Note responses.
+(2) CSRF skip test
+•	Capture admin POST (e.g., enable module). Remove csrf_token param and send. If action succeeds → missing CSRF.
+(3) IDOR test for files
+•	If file served by /system/files/{name} or /?q=system/files/{id}, try sequential IDs (use Intruder with small list).
+(4) REST endpoint abuse
+•	Capture a sample POST /jsonapi/node/article (if present), send to Repeater, change author or uid to another user and see if allowed.
+________________________________________
+Immediate remediation recommendations (short list)
+1.	Patch core & contrib modules — keep Drupal core and all contrib up to date.
+2.	Harden file upload:
+o	Validate file magic bytes (server-side).
+o	Rename uploaded files to randomized names; remove original extension.
+o	Store uploads outside webroot or serve through access-control proxy.
+o	Disable execution in upload directories (web server config).
+3.	Protect sensitive files: deny access to settings.php, composer.json, backups, .git via web server rules.
+4.	Enable/validate CSRF tokens for all state-changing endpoints.
+5.	Enforce least privilege: roles/permissions hardening.
+6.	Implement rate limits & bot protection (CAPTCHA / WAF).
+7.	Harden PHP config: disable display_errors, remove X-Powered-By, set cookie flags, upgrade PHP version.
+8.	Audit modules: remove unused contrib modules; restrict module install/enable to admins and staging.
+9.	Logging & monitoring: log repeated uploads, unusually large requests, and failed auth attempts.
+________________________________________
+Reporting guidance (what to include)
+For each finding include:
+•	Title & severity.
+•	Target URL & HTTP method.
+•	Exact Burp request/response (redact secrets).
+•	Steps to reproduce (copyable Repeater steps or curl).
+•	Impact (spam, data leakage, RCE, site takeover).
+•	Suggested remediation and priority.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+What “14 users” likely means
+Seeing “14 users” in the admin UI simply means the site has 14 user accounts in the database. Important follow-ups:
+•	Check who those users are (user IDs, usernames, emails) and their roles (admin, authenticated, editor, etc.).
+•	Look for user/1 — on Drupal this is the original superuser (UID 1) and has full privileges; it’s a high-value account.
+•	Check for default/bot/test accounts, stale accounts, or accounts with unusual emails that could indicate prior compromise or leftover test data.
+Now — the tests.
+Top-priority admin tests (do these first)
+1.	Account & role audit
+o	Path: /admin/people and /admin/people/permissions
+o	Actions:
+	Export list of users (note usernames, emails, roles, UID).
+	Identify UID 1 and any other admin-role accounts.
+	Check permissions for each role; look for dangerous permissions given to low-privilege roles (e.g., “administer site configuration”, “execute PHP code”).
+o	Burp: capture the GET /admin/people and any role-change POSTs. Save responses.
+o	Why: misassigned permissions = easy privilege escalation.
+2.	Password policy & weak passwords
+o	Actions:
+	As admin, attempt a password reset for an account or change a user’s password (if allowed).
+	Check if password complexity policy enforced (/admin/config/people/accounts).
+	Check for password reuse—if you have access to hashed passwords (you shouldn’t), report it.
+o	Why: weak passwords allow takeover; admin can enforce policy.
+3.	Impersonation / account takeover
+o	Actions:
+	See if admin can "Log in as user" (impersonate) via UI or a module (e.g., Masquerade). Document usage.
+	If impersonation is available, make sure it’s logged and protected.
+o	Burp: capture impersonation POSTs; ensure CSRF tokens present.
+o	Why: impersonation is powerful — check audit trails.
+4.	User creation & mass registration controls
+o	Actions:
+	Try creating a new user from admin UI with arbitrary roles and file uploads. Does it allow assigning admin roles? Does registration allow open admin assignment?
+	Check whether anonymous registration is allowed and whether email verification is enforced.
+o	Why: open registration with auto-admin or weak checks = takeover risk.
+5.	CSRF and admin action protection
+o	Actions:
+	Intercept state-changing admin POSTs (create user, change role, enable module). Remove/alter CSRF token and resend.
+	If actions still succeed → missing CSRF checks.
+o	Burp: Repeater for these POSTs; remove form_build_id/form_token/csrf_token and resend.
+o	Why: CSRF on admin actions can allow remote takeover via CSRF exploit chains.
+6.	Module management & update checks
+o	Paths: /admin/modules, /admin/reports/updates, /update.php
+o	Actions:
+	List installed modules and versions; check for known vulnerable modules (Webform, Views, REST, FileField, IMCE).
+	Check whether modules can be enabled/disabled via UI and if enabling requires CSRF/auth checks.
+	Confirm update.php access control and $settings['update_free_access'] not set.
+o	Why: vulnerable contrib modules are a common path to RCE.
+7.	File upload area & profile image handling
+o	Paths: registration/profile image upload endpoint; /sites/default/files/*
+o	Actions:
+	Re-run the upload tests you did earlier as admin: upload with unusual filenames, double extensions, content-type tampering; observe where files are stored and how served.
+	Check whether admin-only pages allow uploading files that become web-accessible.
+o	Burp: capture multipart upload POST and GET the resulting file URL.
+o	Why: upload + admin privileges = extreme risk if uploads are executable or poorly validated.
+8.	Configuration & sensitive file exposure
+o	Paths: /sites/default/settings.php, /admin/config, /admin/reports/status
+o	Actions:
+	As admin, inspect settings.php location and verify site config values: DB host, file paths, $settings['update_free_access'].
+	Check for extraneous files in webroot (backups, .sql, .git exposures from UI-accessible file listings).
+o	Why: config exposure reveals credentials or attack paths.
+9.	REST/JSONAPI & Webform endpoint access control
+o	Paths: /jsonapi/*, /rest/*, /webform/*
+o	Actions:
+	Check whether authenticated/admin-only endpoints are properly restricted.
+	Intercept JSON POSTs and try to perform create/modify/delete operations as a lower-privilege role (if you have a non-admin test account).
+o	Why: APIs sometimes skip the UI permission model.
+10.	Logs & auditing
+o	Paths: /admin/reports/dblog, or any logging module
+o	Actions:
+	Check whether admin actions (login, user creation, impersonation) are logged.
+	Try an action and confirm it appears in logs (test with non-destructive events).
+o	Why: lack of logging helps attackers remain undetected.
+Additional tests (high value)
+•	Stored XSS: in user profiles, display name, biography, filenames. Submit safe XSS-like filenames and content and view as other roles.
+•	Privilege escalation via role update endpoints: intercept role update POSTs and try IDOR horizontal/vertical changes.
+•	Session fixation & regeneration: login, capture PHPSESSID, change it pre-login to test fixation; confirm session ID regenerated after auth.
+•	Password reset flow: test token single-use, token expiry, and email enumeration (different responses for existing vs non-existing email).
+•	Backup / export features: if admin can export DB/config from UI, test access restrictions; exported files should be protected.
+•	File inclusion / LFI via module parameters: identify module parameters that accept filenames and test traversal read attempts (non-destructive).
+•	Image processing: if admin can trigger image style generation, test for timeouts or errors in image library.
+How to do these safely with Burp (concrete actions)
+•	Use Proxy to capture any admin page requests. For each action:
+o	Right-click → Send to Repeater.
+o	In Repeater, try removing cookies, removing CSRF tokens (form_build_id, form_token), or modifying IDs (uid=14 → uid=15) and resend to see server response.
+o	For file uploads, intercept the multipart POST → Send to Repeater, modify filename/content-type to test validation.
+•	Use Intruder only for controlled tests (e.g., testing sequential file IDs) with heavy throttling and only if authorized.
+•	Save each request/response and screenshot admin UI showing the user list and roles.
+What evidence to capture for reporting
+For every finding include:
+•	Exact URL & HTTP method.
+•	Burp request + response (redact secrets).
+•	Steps to reproduce (copyable Repeater steps or curl).
+•	Observed impact (e.g., “was able to upload file test.php and GET returns 200”). If execution would be possible, don’t run it—note it as potential impact.
+•	Severity & remediation steps.
+Quick checks you can run in the next 10–15 mins
+1.	Go to /admin/people — export users list (or screenshot). Note UID1.
+2.	Open /admin/people/permissions — screenshot roles with dangerous perms.
+3.	Intercept a “change role” POST and remove CSRF token in Repeater — resend. Does role change still occur?
+4.	Upload a harmless test_marker_ABC123.png via user creation; intercept upload POST, send to Repeater and replay GET of returned file URL. Note accessibility.
+5.	Visit /admin/modules and /admin/reports/updates — capture module list and note any outdated modules.
+
+
