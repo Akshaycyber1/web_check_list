@@ -15,6 +15,7 @@ Software and Data Integrity Failures
 Security Logging and Monitoring Failures
 Server-Side Request Forgery (SSRF)
 
+https://securitytoolkits.com/tools/cve-search
 
 special charector letter(make change the speling with this cherector looking different but word is same ato )
 
@@ -875,3 +876,4 @@ Ticket trick
 
 if any comapany ha
 ving there help-desk section, if issuing ticket by sending mail than you should try to find on that try send on this issue mail if you are receiving on you own email so that's vulnerability
+
