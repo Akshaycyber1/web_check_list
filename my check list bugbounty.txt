@@ -3,6 +3,7 @@ https://github.com/HackShiv/OneDorkForAll/blob/main/dorks/60%20bug%20bounty%20do
 https://github.com/KathanP19/HowToHunt/blob/master/IDOR/IDOR.md
 https://github.com/ianare/exif-samples/blob/master/jpg/Konica_Minolta_DiMAGE_Z3.jpg
 https://github.com/payloadbox/directory-payload-list
+https://github.com/orwagodfather/WordList/blob/main/xml.txt
 methodology https://readmedium.com/what-after-recon-part-01-bug-bounty-methodology-25ff3705a738
 
 Broken Access Control
@@ -877,5 +878,6 @@ Ticket trick
 
 if any comapany ha
 ving there help-desk section, if issuing ticket by sending mail than you should try to find on that try send on this issue mail if you are receiving on you own email so that's vulnerability
+
 
 
