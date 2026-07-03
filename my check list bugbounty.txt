@@ -24,7 +24,7 @@ Server-Side Request Forgery (SSRF)
 FOR Recon 1-2 days for
 >>> so First Scan with your Script...in 0000> fast but test//// in Binscan > deep not fully rested.....................
 
-shodan> hNVgvlIoWTFFgppjoKVQFF3bHnfqWFJq
+shodan> hNVgvlIoWTFFgppQFF3bHnfqWFJq
 >>> also scan with JS Hunt | both 2 script run 
 >> Some manual recone go DEEP
 
@@ -592,9 +592,9 @@ Descriptive error about permissions
 Get identity ID (public, intended)
 curl -s https://cognito-identity.eu-west-1.amazonaws.com/ \
   -H "Content-Type: application/x-amz-json-1.1" \
-  -H "X-Amz-Target: AWSCognitoIdentityService.GetId" \
+  -H "X-Amz-Target: AWSCognitoItityService.GetId" \
   -d '{
-    "IdentityPoolId": "us-east-1:37817d17-8481-4be6-8f56-c6cf233e3003"
+    "IdentityPoolId": "us-east-1:37817d17-45748-4be6-8f56-c6cf233e3003"
   }' | jq
 
 ✅ Expected:
@@ -614,7 +614,7 @@ curl -s https://cognito-identity.eu-west-1.amazonaws.com/ \
   -H "Content-Type: application/x-amz-json-1.1" \
   -H "X-Amz-Target: AWSCognitoIdentityService.GetCredentialsForIdentity" \
   -d '{
-    "IdentityId": "eu-west-1:422db64b-42b4-c9d2-898f-73d6d7205608"
+    "IdentityId": "eu-west-1:422db64b-42b4-c9d2-89o6-73d6d7205608"
   }' | jq
 Evaluate output carefully
 
