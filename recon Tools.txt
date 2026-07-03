@@ -170,24 +170,7 @@ curl -H 'Origin: http://example.com' -I https://domain.com/wp-json/
 10. WHOIS Information  
     - whois target.com  
     - Online tools like https://who.is
-
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
-
-
-
-##Recone Manually
-
-recon Tools
-
-1. https://app.pentester.com/
-2. https://dork.bugbountyhunting.com/
-3. https://pentest-tools.com/information-gathering/google-hacking
-4. BigBountyRecon 
-## github dorking
-5. Reconftw
-6. spiderfoot
-7.https://web.archive.org/cdx/search/cdx?url=*.brex.com/*&output=text&fl=original&collapse=urlkey waybackurls -->
-8. https://sawravchy.github.io/archivefinder/
+zoho
 
 
 https://lostsec.xyz/coffin/dorking.html
@@ -204,7 +187,7 @@ https://web.archive.org/cdx/search/cdx?url=*.nicehash.com/*&output=text&fl=origi
 
 ## Virustotal
 https://www.virustotal.com/vtapi/v2/domain/report?apikey={APIKEY}&domain={DOMAIN}
-https://www.virustotal.com/vtapi/v2/domain/report?apikey=a9721c169073a5be8f1a625d69e219b5625a52c8a48d3edda03cde3ffae97fe8&domain=zoho.com
+https://www.virustotal.com/vtapi/v2/domain/report?apikey=52c8a48d3ed8&domain=zoho.com
 
 
 ## Alien vault
