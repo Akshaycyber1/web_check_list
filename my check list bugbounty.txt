@@ -226,7 +226,7 @@ AI / CHATBOT SECURITY TESTING CHECKLIST
     - Test backend endpoints manually
 
 
-
+https://medium.com/@darshannnaik1234/ai-llm-hacking-part-2-prompt-injection-13030a731e15
 
 =================================================================================================================================
 DNS Zone Transfer Vulnerability
