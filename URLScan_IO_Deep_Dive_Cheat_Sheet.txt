@@ -1,0 +1,118 @@
+URLScan.io - Personal Recon Cheat Sheet
+
+========================================================== 1. SEARCH
+SPECIFIC DOMAIN
+==========================================================
+page.domain:dtdc.com
+
+Exclude a subdomain: page.domain:dtdc.com AND NOT
+page.domain:tracking.dtdc.com
+
+========================================================== 2. URL
+DISCOVERY ==========================================================
+Token: page.url:token page.url:access_token page.url:jwt
+
+JWT: page.url:eyJ
+
+Admin: page.url:admin
+
+Email: page.url:*@*
+
+Password Reset: page.url:(reset-password OR resetpassword OR
+forgot-password OR forgotpassword OR passwordreset)
+
+========================================================== 3. OPEN
+DIRECTORY ==========================================================
+Uploads: page.title:“Index of /” AND page.url:uploads
+
+Backups: page.title:“Index of /” AND page.url:backup
+
+Private: page.title:“Index of /” AND page.url:private
+
+Education: page.title:“Index of /” AND page.domain:.edu
+
+========================================================== 4. SWAGGER /
+PHPINFO ==========================================================
+page.title:“Swagger UI” page.title:“Swagger UI” AND page.domain:.gov
+
+filename:phpinfo.php filename:phpinfo.php AND page.domain:.gov
+
+========================================================== 5. FILE
+EXPOSURE ==========================================================
+page.url:etc/passwd
+
+page.mimeType:“application/zip” page.mimeType:“application/zip” AND
+page.domain:apple.com
+
+page.mimeType:“application/json” page.domain:tesla.com AND
+page.mimeType:“application/json”
+
+page.domain:tesla.com AND page.mimeType:“application/pdf”
+
+========================================================== 6. SERVER &
+STATUS ==========================================================
+page.server:Apache server:nginx server:IIS server:Werkzeug
+server:gunicorn
+
+page.status:403 page.status:404 page.status:[500 TO 599]
+
+========================================================== 7. LOGIN
+PANELS ==========================================================
+page.title:(login OR signin OR administrator OR “control panel”)
+
+========================================================== 8. FILE
+HUNTING ==========================================================
+filename:.db filename:.sqlite filename:.sqlite3 filename:.env
+filename:.js filename:.js.map filename:.sql filename:.bak filename:.zip
+filename:.tar filename:.gz filename:.apk filename:*.ipa
+
+========================================================== 9. MIME TYPES
+==========================================================
+page.mimeType:“application/json” page.mimeType:“application/xml”
+page.mimeType:“application/pdf” page.mimeType:“application/javascript”
+page.mimeType:“application/zip” page.mimeType:“text/plain”
+
+========================================================== 10.
+INFRASTRUCTURE DISCOVERY
+========================================================== domain:TARGET
+AND NOT page.domain:TARGET
+
+========================================================== 11. TIME / IP
+/ ASN ==========================================================
+page.ip:* AND date:>now-7d page.ip:104.16.0.0/16 page.asn:AS13335
+country:US country:IN
+
+========================================================== 12. HASH
+PIVOT ==========================================================
+hash:d699f303…
+
+========================================================== 13. FUZZY /
+REGEX ==========================================================
+page.domain:(paypal.com~ AND NOT paypal.com) page.domain:(/pay.*/ AND
+NOT paypal.com)
+
+========================================================== 14. URL
+PREFIX ==========================================================
+page.url.keyword:https://example.com/admin/*
+
+========================================================== 15. FRESH
+HOSTS ==========================================================
+page.domainAgeDays:<30 page.tlsValidFrom:>now-14d stats.requests:>150
+
+========================================================== 16. URLSCAN
+PRO ==========================================================
+content.inputTypes:file content.inputTypes:password
+content.inputNames:otp content.cookieNames:session
+content.storageNames:token text.content:“internal use only”
+
+========================================================== 17. FIXED
+QUERIES ==========================================================
+Correct: page.server:Apache filename:phpinfo.php page.url:etc/passwd
+filename:*.db
+
+Removed: shawod page.ui page.server.apache filename:phppinfo.php
+
+Notes: - Use AND / OR / NOT in uppercase. - page.* = primary scanned
+page. - domain:* = any contacted resource. - page.domainAgeDays finds
+newly deployed hosts. - hash: searches identical files across scans. -
+filename:*.js.map is one of the highest-value bug bounty queries.
