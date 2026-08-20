@@ -1,0 +1,596 @@
+AD Username
+     +
+AD Password
+     │
+     ▼
+Windows MFA Credential Provider
+     │
+     ▼
+Bit4id Token detected
+     │
+     ▼
+Certificate selected
+     │
+     ├── Certificate validity
+     ├── Certificate → user mapping
+     ├── OCSP / CRL revocation check
+     │
+     ▼
+Certificate NOT revoked
+     │
+     ▼
+Request Token PIN
+     │
+     ▼
+PIN unlocks/proves possession of private key
+     │
+     ▼
+Private-key operation / certificate authentication
+     │
+     ▼
+AD / Windows authentication
+
+
+
+
+======
+
+Yes. For this setup, I’d expand the retest beyond just “revoked certificate vs valid certificate.” Since the EXE installs/configures the Windows Credential Provider and the flow is AD credentials → certificate/token → PIN → authentication, these are the higher-value cases:
+
+1. Authentication-flow tests
+Test case	Expected
+Valid AD username + valid password + valid token + valid PIN	Login succeeds
+Valid AD credentials + no token	Login blocked
+Valid AD credentials + wrong PIN	Login blocked
+Valid AD credentials + cancelled PIN	Login blocked
+Wrong AD password + valid token + PIN	Login blocked
+Wrong AD username + valid token + PIN	Login blocked
+Invalid token/certificate	Login blocked
+Token removed during authentication	Authentication fails safely
+2. Certificate validation
+
+Test the certificate itself:
+
+Valid certificate
+Expired certificate
+Not-yet-valid certificate
+Revoked certificate
+Certificate from an untrusted CA
+Broken certificate chain
+Certificate without the expected EKU
+Certificate belonging to another authorized test user
+Certificate with an unexpected issuer
+Certificate with an unexpected subject/SAN
+
+The key question is:
+
+Does the client validate the complete certificate chain and intended certificate purpose, rather than merely checking that a certificate exists on the token?
+
+3. OCSP / CRL
+
+Test:
+
+OCSP = good
+OCSP = revoked
+OCSP unavailable
+OCSP timeout
+CRL available
+CRL unavailable
+Certificate appears on CRL
+Certificate is not on CRL
+Stale cached revocation information
+
+Document whether the implementation fails closed or fails open and compare that behavior with the organization's security requirement.
+
+4. Certificate-to-AD-account mapping
+
+This is particularly important.
+
+Using authorized test accounts:
+
+User A + Certificate A → expected success
+
+
+User A + Certificate B → expected failure
+User B + Certificate A → expected failure
+
+You are checking whether the implementation verifies:
+
+“This certificate belongs to this AD identity.”
+
+rather than simply:
+
+“This certificate is valid.”
+
+5. PIN/token tests
+
+Test:
+
+Correct PIN
+Incorrect PIN
+Empty PIN
+Cancel PIN
+Token removed before PIN
+Token removed after PIN
+Token reinserted
+Repeated incorrect PIN attempts
+Locked token behavior
+
+Don't brute-force the PIN.
+
+6. Windows Credential Provider tests
+
+Since your EXE adds the additional login icon, compare before installation vs after installation.
+
+Check:
+
+What new credential provider is registered?
+Is the normal password provider disabled?
+Is it merely hidden?
+Can another enabled provider still authenticate?
+Can Safe Mode or another supported authentication path bypass the intended MFA?
+Does uninstalling the EXE correctly restore the original authentication configuration?
+Does rebooting change the behavior?
+
+The distinction between “password option hidden” and “password authentication actually prohibited” is important.
+
+7. Local-storage/security tests
+
+This directly relates to your previous finding.
+
+Monitor during:
+
+Successful login
+Failed password
+Failed PIN
+Revoked certificate
+Invalid certificate
+Cancelled authentication
+
+Check:
+
+Application logs
+.txt
+.log
+.tmp
+.json
+.xml
+.db
+Cache files
+The revocation folder
+%TEMP%
+%ProgramData%
+%AppData%
+Other directories created by the EXE
+
+Verify that you cannot recover:
+
+AD password
+PIN
+Private key
+Authentication token
+Sensitive certificate material
+8. File-permission tests
+
+Even if the application needs to store certificate/revocation information, check whether ordinary users can read or modify it.
+
+For example:
+
+Application files
+       ↓
+Who can READ?
+Who can WRITE?
+Who can MODIFY?
+Who owns the files?
+
+A particularly interesting finding would be if a low-privileged user can modify the certificate/revocation data used by the credential provider and thereby influence authentication decisions.
+
+9. Registry tests
+
+Because the EXE also installs .reg files, compare the registry before and after installation.
+
+Look particularly at:
+
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\Credential Providers
+
+and:
+
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\Credential Provider Filters
+
+Also identify the application's own registry keys.
+
+Check whether a standard user can modify security-sensitive configuration. Don't modify production settings during the test; first establish the permissions and impact in your authorized test environment.
+
+10. Uninstall/reinstall behavior
+
+This is often overlooked.
+
+Test:
+
+Install EXE
+    ↓
+MFA works
+
+
+Uninstall
+    ↓
+Reboot
+    ↓
+Does the old credential provider remain?
+
+
+Reinstall
+    ↓
+Does configuration duplicate or conflict?
+
+Also check whether uninstall leaves behind:
+
+Credentials
+Certificates
+Private-key material
+Logs
+Configuration
+Revocation cache
+Registry entries
+Services/DLLs
+11. Most important cases for your retest
+
+If you have limited time, I'd prioritize these 10:
+
+Plaintext AD password still written to disk?
+Revoked certificate accepted?
+Expired certificate accepted?
+Wrong user's certificate accepted?
+Untrusted certificate accepted?
+OCSP/CRL unavailable → does authentication fail or continue?
+Wrong PIN → can authentication continue?
+Can password-only authentication bypass the token?
+Can another Windows Credential Provider bypass MFA?
+Can a normal user modify the local certificate/revocation configuration?
+
+These will give you a much stronger assessment of the EXE + Windows Credential Provider + Bit4id + AD + OCSP/CRL chain rather than testing each component in isolation.
+
+
+
+------------------------------------------------------------------------------------------
+
+If you already have `strings.txt`, you can quickly triage it on Linux with `grep`.
+
+### 1. Authentication / credentials
+
+```bash
+grep -Ein 'password|passwd|username|user(name)?|credential|auth(entication)?|login|logon|secret|token|pin' strings.txt
+```
+
+### 2. Certificate / smart card
+
+```bash
+grep -Ein 'certificate|x509|smart.?card|bit4id|pkcs|pkcs#11|private.?key|public.?key|cert(f|ificate)?|thumbprint|fingerprint|serial|issuer|subject|eku' strings.txt
+```
+
+### 3. OCSP / CRL / revocation
+
+```bash
+grep -Ein 'ocsp|crl|revocation|revoked|certificate.?status|distribution.?point|authority.?information.?access' strings.txt
+```
+
+### 4. Windows Credential Provider
+
+```bash
+grep -Ein 'credential.?provider|credential.?provider.?filter|winlogon|authentication.*provider|inprocserver32|clsid|guid' strings.txt
+```
+
+### 5. AD / Windows authentication
+
+```bash
+grep -Ein 'active.?directory|ldap|ldaps|kerberos|ntlm|sspi|logonuser|lsa|credssp|domain.?controller' strings.txt
+```
+
+### 6. Files and directories
+
+This is especially useful for your previous plaintext-password finding:
+
+```bash
+grep -Ein 'C:\\|C:/|programdata|appdata|temp|tmp|cache|log|logs|config|revocation' strings.txt
+```
+
+### 7. Interesting file extensions
+
+```bash
+grep -Ein '\.(log|txt|tmp|json|xml|ini|config|db|dat|crl|cer|crt|csr|pfx|p12|key)\b' strings.txt
+```
+
+### 8. URLs / network endpoints
+
+```bash
+grep -Eio 'https?://[^[:space:]"]+|ldap[s]?://[^[:space:]"]+' strings.txt
+```
+
+Then specifically:
+
+```bash
+grep -Ein 'https?://|ldap://|ldaps://|ocsp|crl' strings.txt
+```
+
+### 9. Debug/error messages
+
+```bash
+grep -Ein 'debug|trace|error|exception|failed|failure|success|invalid|denied|access|warning' strings.txt
+```
+
+### 10. Create one combined high-value output
+
+For your particular assessment:
+
+```bash
+grep -Ein 'password|passwd|username|credential|token|pin|bit4id|smart.?card|certificate|private.?key|pkcs|ocsp|crl|revocation|revoked|credential.?provider|winlogon|ldap|ldaps|kerberos|ntlm|programdata|appdata|temp|tmp|log|config|https?://|C:\\|C:/' strings.txt > interesting.txt
+```
+
+Then:
+
+```bash
+less -S interesting.txt
+```
+
+### Better: remove duplicate results
+
+```bash
+grep -Ein 'password|passwd|username|credential|token|pin|bit4id|smart.?card|certificate|private.?key|pkcs|ocsp|crl|revocation|revoked|credential.?provider|winlogon|ldap|ldaps|kerberos|ntlm|programdata|appdata|temp|tmp|log|config|https?://|C:\\|C:/' strings.txt | sort -fu > interesting.txt
+```
+
+Then you can inspect it with:
+
+```bash
+cat interesting.txt
+```
+
+or:
+
+```bash
+less -S interesting.txt
+```
+
+**For your case, start with `interesting.txt`.** If you paste its output here (remove any real passwords, private keys, internal secrets, or sensitive URLs), I can help you identify which strings are actually interesting for the **Credential Provider + Bit4id + OCSP/CRL + AD** architecture.
+
+
+----------------------------------------------------
+Yes. If the **testing VM shuts down/crashes during the login process**, capturing from another VM is possible, but it depends on how your VMs are networked.
+
+The cleanest approach is to capture traffic **outside the target VM**, so the target can disappear without destroying the capture.
+
+### Option 1 — Best: capture on the hypervisor/host
+
+If your setup is:
+
+```text
+             Host PC
+                │
+        ┌───────┴────────┐
+        │                │
+   Testing VM       Capture VM
+   Windows           Linux
+        │                │
+        └──── Network ───┘
+```
+
+Capturing directly on the host's virtual network interface is usually easier than trying to make one VM sniff another VM's traffic.
+
+For example, with VMware/VirtualBox/Hyper-V, identify the virtual network interface connecting the two VMs and capture on that interface.
+
+---
+
+### Option 2 — Capture from another VM
+
+This is possible if the network is configured so the capture VM can actually see the target VM's traffic.
+
+If both VMs are simply connected to a normal virtual switch:
+
+```text
+Testing VM ─────┐
+                │
+             vSwitch
+                │
+Capture VM ─────┘
+```
+
+**the capture VM may NOT see the testing VM's unicast traffic.**
+
+That's because a switch normally sends traffic only to the intended destination.
+
+You need a supported capture arrangement such as:
+
+```text
+Testing VM
+     │
+     ▼
+Virtual switch
+     │
+     ├──── Capture VM
+     │
+     └──── Destination
+```
+
+with appropriate port mirroring/promiscuous-mode configuration.
+
+---
+
+## Option 3 — VMware
+
+If you're using VMware, you can configure the virtual network so the capture VM can observe the relevant traffic.
+
+Then on Kali/Linux:
+
+```bash
+ip addr
+```
+
+Identify the interface, for example:
+
+```text
+eth0
+```
+
+Start Wireshark:
+
+```bash
+sudo wireshark
+```
+
+Select the appropriate interface and start capturing **before** you begin authentication.
+
+Or use `tcpdump`:
+
+```bash
+sudo tcpdump -i eth0 -w login.pcap
+```
+
+Then perform:
+
+```text
+Username
+   ↓
+Password
+   ↓
+Token
+   ↓
+PIN
+   ↓
+Authentication
+```
+
+If the Windows VM crashes/shuts down, the capture VM continues running.
+
+Stop it afterward with:
+
+```bash
+Ctrl+C
+```
+
+Then open:
+
+```bash
+wireshark login.pcap
+```
+
+---
+
+## But there's an important limitation
+
+If the authentication traffic is:
+
+```text
+Windows VM
+     ↓
+HTTPS/TLS
+     ↓
+AD / authentication server
+```
+
+Wireshark will show something like:
+
+```text
+Client → Server
+TLS ClientHello
+TLS ServerHello
+Encrypted Application Data
+```
+
+You **won't automatically see the username/password/certificate contents**.
+
+Similarly, Kerberos and NTLM authentication traffic can contain useful metadata but isn't simply plaintext HTTP that you can read.
+
+That's actually useful for your investigation: you can determine **which protocol/endpoints are being contacted**, even if the contents are encrypted.
+
+---
+
+## For your particular MFA investigation
+
+I'd capture and then filter around:
+
+```text
+DNS
+TCP
+TLS
+LDAP
+LDAPS
+Kerberos
+HTTP
+HTTPS
+OCSP
+CRL
+```
+
+For example:
+
+```wireshark
+dns
+```
+
+then:
+
+```wireshark
+tcp
+```
+
+and:
+
+```wireshark
+tls
+```
+
+If you know the AD server:
+
+```wireshark
+ip.addr == <AD_SERVER_IP>
+```
+
+If you discover an OCSP server:
+
+```wireshark
+ip.addr == <OCSP_SERVER_IP>
+```
+
+You can then establish a timeline:
+
+```text
+21:10:01  AD connection
+21:10:02  Credential Provider activity
+21:10:03  OCSP request
+21:10:03  OCSP response
+21:10:04  Token interaction
+21:10:05  Authentication traffic
+21:10:06  VM crashes
+```
+
+That would be very useful for understanding your EXE.
+
+### One more thing I'd recommend
+
+Because **the VM is dying during authentication**, don't rely only on Wireshark. Run **Process Monitor inside the Windows VM with boot logging enabled** or capture filesystem/registry activity before starting the login process.
+
+That can help answer your original question much better:
+
+> Did the EXE write the password to disk immediately before the VM crashed?
+
+For your retest, I'd use **two captures simultaneously**:
+
+```text
+                 Windows Testing VM
+                  /             \
+                 /               \
+        Process Monitor       Network traffic
+             │                       │
+             ▼                       ▼
+       Files/Registry             Wireshark
+             │                       │
+             └──────────┬────────────┘
+                        ▼
+                 Authentication
+                    timeline
+```
+
+This gives you both **what the EXE did locally** and **where it communicated externally**.
+
+
+
+
