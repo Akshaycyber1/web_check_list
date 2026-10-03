@@ -7,6 +7,12 @@ https://github.com/gigachad80/grep-backURLs
 https://github.com/Vaidik-pandya/Checklist-Guide-resources/blob/main/100-Ways-for-IDOR.md
 https://dorkengine.github.io/
 https://app.trinetlayer.com/ghostjs
+https://github.com/iorch/jakaton_feminicidios/blob/master/data/emojis.csv(emoji's characters)
+https://kriztalz.sh/t
+https://bgp.tools/
+
+
+
 
 
 Broken Access Control
@@ -82,6 +88,22 @@ Ouput will be like Something.
 https://brokenlinkcheck.com/
 https://www.deadlinkchecker.com/
 https://ahrefs.com/
+
+------------------------------------------------------------------------------------------------------------------------------
+Reverse Tabnabbing Phishing Attack
+----------------------------------->>
+
+window.opener.location = "https://evil.example/phishing";
+
+
+"target=_blank exists → Reverse Tabnabbing."
+
+You need to establish the actual chain:
+
+External/new-tab link → window.opener available → attacker-controlled page can navigate original tab
+
+
+opnner.location="https://evil.com"
 
 ===============================================================================================================================
 ==============================
@@ -1833,16 +1855,3 @@ FINAL SECURITY RECOMMENDATIONS
 ==============================
 END OF CHECKLIST
 ==============================
-
-
-
-
-
-
-
-
-
-
-
-
-
