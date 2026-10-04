@@ -164,6 +164,7 @@ INVITE FUNCTIONALITY CHECKLIST
     - Inject payload in email subject
     - Blind XSS in email template
     - Stored XSS via role name
+    - 💋img src=x onerror=alert(document.domain)//💛 sone time the emoji will reflect https://medium.com/@fpatrik/how-i-found-an-xss-vulnerability-via-using-emojis-7ad72de49209
 
 [ ] 10. Session Issues
     - Accept invite in different session
